@@ -67,12 +67,14 @@ Cursor CLI(`agent` 명령)를 활용하여 여러 작업을 병렬로 위임·�
 
 ### 스크립트
 
-| 스크립트 | 용도 | 사용법 |
-|---------|------|--------|
-| `delegate.sh` | CLI 병렬 위임 + 완료 요약 | `delegate.sh <role-file> [role-file2] ...` |
-| `lock.sh` | 역할 잠금 + status: in_progress | `lock.sh <role-file> <pid>` |
-| `unlock.sh` | 잠금 해제 + status: completed | `unlock.sh <role-file>` |
-| `status.sh` | 실시간 상태 조회 | `status.sh [job-dir]` |
+| 스크립트 | 용도 |
+|---------|------|
+| `delegate.sh <role-file> [role-file2] ...` | CLI 병렬 위임. lock 자동 수행, 역할별 로그 저장, 실패 시 status=failed 자동 전환, job.md에 pid/started_at/ended_at 자동 기록 |
+| `job-init.sh <job-dir> <goal> <target> [ref]` | job 구조 초기화 + 역할 문서 생성 (번호 자동, 테이블 자동 추가). 첫 호출 시 `PURPOSE=` 환경변수로 job 목적 설정 |
+| `summary.sh [job-dir]` | 모든 역할의 결과 요약만 추출 (메인 결과 수집용) |
+| `lock.sh <role-file> <pid>` | 잠금 + status: in_progress |
+| `unlock.sh <role-file>` | 잠금 해제 + status: completed |
+| `status.sh [job-dir]` | 실시간 상태 조회 |
 
 ### 역할 분할 예시
 
@@ -93,9 +95,11 @@ Cursor CLI(`agent` 명령)를 활용하여 여러 작업을 병렬로 위임·�
 │   ├── SKILL.md
 │   ├── scripts/
 │   │   ├── delegate.sh
+│   │   ├── job-init.sh
 │   │   ├── lock.sh
 │   │   ├── unlock.sh
-│   │   └── status.sh
+│   │   ├── status.sh
+│   │   └── summary.sh
 │   └── templates/
 │       └── README.md
 ```
