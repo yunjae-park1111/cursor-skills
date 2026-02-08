@@ -113,10 +113,9 @@ feat: add user authentication system
 | `EPIC_REPO` | Epic이 있는 레포 (크로스 레포 시) |
 | `ISSUE_BODY` | 이슈 본문 |
 | `PROJECT_NUMBER` | 프로젝트 번호 (지정 시 프로젝트 연결 + 필드 설정) |
-| `PRIORITY` | Priority (미지정 시 에이전트 자율 판단) |
-| `SIZE` | Size (기본: S) |
+| `PRIORITY` | Priority: P0/P1/P2 (에이전트 자율 판단) |
+| `SIZE` | Size: XS/S/M/L/XL (에이전트 자율 판단) |
 | `STATUS` | Status (기본: Todo) |
-| `ESTIMATE` | Estimate (기본: 1) |
 
 ### 주의사항
 

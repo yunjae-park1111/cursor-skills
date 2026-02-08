@@ -40,9 +40,13 @@ else
 fi
 
 # 푸시 상태 확인
-UNPUSHED=$(git log "origin/$CURRENT_BRANCH..$CURRENT_BRANCH" --oneline 2>/dev/null | wc -l | tr -d ' ')
-if [ "$UNPUSHED" -gt 0 ] || ! git ls-remote --heads origin "$CURRENT_BRANCH" | grep -q .; then
+if ! git ls-remote --heads origin "$CURRENT_BRANCH" 2>/dev/null | grep -q .; then
   git push -u origin "$CURRENT_BRANCH"
+else
+  UNPUSHED=$(git log "origin/$CURRENT_BRANCH..$CURRENT_BRANCH" --oneline 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$UNPUSHED" -gt 0 ]; then
+    git push -u origin "$CURRENT_BRANCH"
+  fi
 fi
 
 # PR 타입 추출
