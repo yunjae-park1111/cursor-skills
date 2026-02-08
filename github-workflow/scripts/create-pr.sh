@@ -3,7 +3,10 @@
 # Usage: create-pr.sh [issue_number] [target_branch]
 #
 # 이슈 번호를 인자로 받거나, 현재 브랜치에서 자동 추출한다.
-# 타겟 브랜치를 인자로 받거나, 브랜치 규칙에 따라 자동 결정한다.
+# 타겟 브랜치를 인자로 받거나, 리모트 HEAD로 자동 결정한다.
+#
+# Options (환경변수):
+#   PR_BODY - PR 본문 (미지정 시 기본 템플릿)
 
 set -e
 
@@ -38,23 +41,44 @@ fi
 
 # 푸시 상태 확인
 UNPUSHED=$(git log "origin/$CURRENT_BRANCH..$CURRENT_BRANCH" --oneline 2>/dev/null | wc -l | tr -d ' ')
-if [ "$UNPUSHED" -gt 0 ]; then
+if [ "$UNPUSHED" -gt 0 ] || ! git ls-remote --heads origin "$CURRENT_BRANCH" | grep -q .; then
   git push -u origin "$CURRENT_BRANCH"
 fi
 
 # PR 타입 추출
-PR_TYPE=$(echo "$CURRENT_BRANCH" | grep -oE '^[a-z]+' | head -1)
+FIRST_COMMIT_MSG=$(git log "$TARGET_BRANCH..$CURRENT_BRANCH" --format='%s' --reverse 2>/dev/null | head -1)
+PR_TYPE=$(echo "$FIRST_COMMIT_MSG" | grep -oE '^[a-z]+' | head -1)
 case "$PR_TYPE" in
-  feat|fix|docs|refactor|enhance|style|test|chore) ;;
+  feat|fix|docs|refactor|enhance|style|test|chore|perf|ci|build|revert) ;;
   *) PR_TYPE="feat" ;;
 esac
 
-# 출력: 에이전트가 이 정보로 PR 생성
+PR_TITLE="#$ISSUE_NUMBER $PR_TYPE: $ISSUE_TITLE"
+
+# PR 본문
+if [ -z "$PR_BODY" ]; then
+  PR_BODY="## Issue?
+Closes #$ISSUE_NUMBER
+
+## Changes?
+
+## Why we need?
+
+## Test?
+
+## CC (Optional)
+
+## Anything else? (Optional)"
+fi
+
+# PR 생성
+PR_URL=$(gh pr create --title "$PR_TITLE" --base "$TARGET_BRANCH" --body "$PR_BODY")
+
 cat << PRINFO
+PR_URL=$PR_URL
 ISSUE_NUMBER=$ISSUE_NUMBER
 ISSUE_TITLE=$ISSUE_TITLE
-CURRENT_BRANCH=$CURRENT_BRANCH
 TARGET_BRANCH=$TARGET_BRANCH
 PR_TYPE=$PR_TYPE
-PR_TITLE=#$ISSUE_NUMBER $PR_TYPE: $ISSUE_TITLE
+PR_TITLE=$PR_TITLE
 PRINFO
