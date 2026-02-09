@@ -41,10 +41,6 @@ fi
 
 # 기존 PR 존재 확인
 EXISTING_PR=$(gh pr list --head "$CURRENT_BRANCH" --base "$TARGET_BRANCH" --json number --jq '.[0].number' 2>/dev/null)
-if [ -n "$EXISTING_PR" ]; then
-  echo "ERROR: 이미 PR #$EXISTING_PR 이(가) 존재합니다. ($CURRENT_BRANCH → $TARGET_BRANCH)" >&2
-  exit 1
-fi
 
 # 푸시 상태 확인
 if ! git ls-remote --heads origin "$CURRENT_BRANCH" 2>/dev/null | grep -q .; then
@@ -82,10 +78,18 @@ Closes #$ISSUE_NUMBER
 ## Anything else? (Optional)"
 fi
 
-# PR 생성
-PR_URL=$(gh pr create --title "$PR_TITLE" --base "$TARGET_BRANCH" --body "$PR_BODY")
+# PR 생성 또는 수정
+if [ -n "$EXISTING_PR" ]; then
+  gh pr edit "$EXISTING_PR" --title "$PR_TITLE" --body "$PR_BODY"
+  PR_URL=$(gh pr view "$EXISTING_PR" --json url --jq '.url')
+  ACTION="updated"
+else
+  PR_URL=$(gh pr create --title "$PR_TITLE" --base "$TARGET_BRANCH" --body "$PR_BODY")
+  ACTION="created"
+fi
 
 cat << PRINFO
+ACTION=$ACTION
 PR_URL=$PR_URL
 ISSUE_NUMBER=$ISSUE_NUMBER
 ISSUE_TITLE=$ISSUE_TITLE
