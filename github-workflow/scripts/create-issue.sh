@@ -45,8 +45,8 @@ if [ -n "$PROJECT_NUMBER" ]; then
   gh project item-add "$PROJECT_NUMBER" --owner "$OWNER" --url "$ISSUE_URL" 2>/dev/null || true
 
   FIELDS=$(gh project field-list "$PROJECT_NUMBER" --owner "$OWNER" --format json 2>/dev/null)
-  ITEM_ID=$(gh project item-list "$PROJECT_NUMBER" --owner "$OWNER" --format json --limit 1000 2>/dev/null | \
-    jq -r ".items[] | select(.content.url == \"$ISSUE_URL\") | .id")
+  ITEM_ID=$(gh project item-list "$PROJECT_NUMBER" --owner "$OWNER" --format json 2>/dev/null | \
+    jq -r "first(.items[] | select(.content.url == \"$ISSUE_URL\")) | .id")
   PROJECT_ID=$(gh project view "$PROJECT_NUMBER" --owner "$OWNER" --format json 2>/dev/null | jq -r '.id')
 
   if [ -z "$ITEM_ID" ]; then
@@ -72,8 +72,8 @@ if [ -n "$PROJECT_NUMBER" ]; then
 
     # Sprint: 최신 iteration 자동 설정
     SPRINT_FIELD_ID=$(echo "$FIELDS" | jq -r '.fields[] | select(.type == "ProjectV2IterationField") | .id')
-    SPRINT_ITERATION_ID=$(gh project item-list "$PROJECT_NUMBER" --owner "$OWNER" --format json --limit 1000 2>/dev/null | \
-      jq -r '[.items[] | to_entries[] | select(.value | type == "object" and has("iterationId")) | .value] | unique_by(.iterationId) | sort_by(.startDate) | last | .iterationId')
+    SPRINT_ITERATION_ID=$(gh project item-list "$PROJECT_NUMBER" --owner "$OWNER" --format json --limit 1 2>/dev/null | \
+      jq -r 'first(.items[] | to_entries[] | select(.value | type == "object" and has("iterationId")) | .value) | .iterationId')
 
     [ -n "$SPRINT_FIELD_ID" ] && [ -n "$SPRINT_ITERATION_ID" ] && [ "$SPRINT_ITERATION_ID" != "null" ] && \
       gh project item-edit --id "$ITEM_ID" --field-id "$SPRINT_FIELD_ID" --project-id "$PROJECT_ID" --iteration-id "$SPRINT_ITERATION_ID" 2>/dev/null || true
