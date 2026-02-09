@@ -3,8 +3,12 @@
 # Usage: unlock.sh <role-file>
 
 ROLE_FILE="$1"
+LOCK_DIR="${ROLE_FILE%.md}.lock"
 
 [ ! -f "$ROLE_FILE" ] && exit 1
+
+# lock 디렉토리 삭제
+rm -rf "$LOCK_DIR" 2>/dev/null
 
 # 잠금 해제
 sed -i.bak "s/^- locked: .*/- locked: false/" "$ROLE_FILE"

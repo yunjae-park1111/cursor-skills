@@ -30,6 +30,9 @@ ISSUE_NUMBER=$(echo "$ISSUE_URL" | grep -oE '[0-9]+$')
 
 # Epic 서브이슈 연결
 if [ -n "$EPIC_NUMBER" ]; then
+  if ! gh extension list 2>/dev/null | grep -q 'sub-issue'; then
+    echo "WARN: gh sub-issue 확장이 설치되어 있지 않습니다. 'gh extension install yahsan2/gh-sub-issue'로 설치하세요." >&2
+  fi
   if [ "$TARGET_REPO" = "$CURRENT_REPO" ]; then
     gh sub-issue add "$EPIC_NUMBER" "$ISSUE_NUMBER" 2>/dev/null || true
   else

@@ -31,7 +31,7 @@ REF="$4"
 }
 
 # .agent/ 디렉토리 초기화
-AGENT_DIR=$(echo "$JOB_DIR" | sed 's|/job-[0-9]*$||')
+AGENT_DIR="${JOB_DIR%/job-*}"
 if [ ! -d "$AGENT_DIR" ]; then
   mkdir -p "$AGENT_DIR"
   TEMPLATE="$HOME/.cursor/skills/agent-role/templates/README.md"

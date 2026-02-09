@@ -113,9 +113,14 @@ feat: add user authentication system
 | `EPIC_REPO` | Epic이 있는 레포 (크로스 레포 시) |
 | `ISSUE_BODY` | 이슈 본문 |
 | `PROJECT_NUMBER` | 프로젝트 번호 (지정 시 프로젝트 연결 + 필드 설정) |
-| `PRIORITY` | Priority: P0/P1/P2 (에이전트 자율 판단) |
-| `SIZE` | Size: XS/S/M/L/XL (에이전트 자율 판단) |
+| `PRIORITY` | Priority: P0/P1/P2 (기본: P1, 에이전트 자율 판단) |
+| `SIZE` | Size: XS/S/M/L/XL (기본: S, 에이전트 자율 판단) |
 | `STATUS` | Status (기본: Todo) |
+
+### 자동 설정
+
+- `PROJECT_NUMBER` 지정 시 Status, Priority, Size 필드를 자동 설정한다.
+- Sprint(Iteration) 필드는 프로젝트에 존재하는 최신 iteration을 자동 선택한다.
 
 ### 주의사항
 

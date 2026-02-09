@@ -50,7 +50,7 @@ job-{n}/ — 작업 단위 (`job-init.sh`가 자동 생성)
 | idle | 생성됨, 아직 시작 안 함 |
 | in_progress | 워커가 작업 중 (lock.sh가 설정) |
 | completed | 작업 완료 (unlock.sh가 설정) |
-| failed | 작업 실패 (메인이 확인 후 수동 설정) |
+| failed | 작업 실패 (delegate.sh가 자동 설정 또는 메인이 수동 설정) |
 
 ### .done (자동 생성/삭제)
 delegate.sh 완료 시 job 폴더에 생성. 내용: `total=N completed=N failed=N`

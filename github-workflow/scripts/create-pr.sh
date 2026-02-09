@@ -39,6 +39,13 @@ else
   TARGET_BRANCH=$(git remote show origin | grep 'HEAD branch' | awk '{print $NF}')
 fi
 
+# 기존 PR 존재 확인
+EXISTING_PR=$(gh pr list --head "$CURRENT_BRANCH" --base "$TARGET_BRANCH" --json number --jq '.[0].number' 2>/dev/null)
+if [ -n "$EXISTING_PR" ]; then
+  echo "ERROR: 이미 PR #$EXISTING_PR 이(가) 존재합니다. ($CURRENT_BRANCH → $TARGET_BRANCH)" >&2
+  exit 1
+fi
+
 # 푸시 상태 확인
 if ! git ls-remote --heads origin "$CURRENT_BRANCH" 2>/dev/null | grep -q .; then
   git push -u origin "$CURRENT_BRANCH"
@@ -53,7 +60,7 @@ fi
 FIRST_COMMIT_MSG=$(git log "$TARGET_BRANCH..$CURRENT_BRANCH" --format='%s' --reverse 2>/dev/null | head -1)
 PR_TYPE=$(echo "$FIRST_COMMIT_MSG" | grep -oE '^[a-z]+' | head -1)
 case "$PR_TYPE" in
-  feat|fix|docs|refactor|enhance|style|test|chore|perf|ci|build|revert) ;;
+  feat|fix|docs|refactor|style|test|chore|perf|ci|build|revert) ;;
   *) PR_TYPE="feat" ;;
 esac
 
