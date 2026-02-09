@@ -48,10 +48,16 @@ ITEM_ID=""
 PROJECT_ID=""
 if [ -n "$PROJECT_NUMBER" ]; then
   gh project item-add "$PROJECT_NUMBER" --owner "$OWNER" --url "$ISSUE_URL" 2>/dev/null || true
+  sleep 3
 
   FIELDS=$(gh project field-list "$PROJECT_NUMBER" --owner "$OWNER" --format json 2>/dev/null)
-  ITEM_ID=$(gh project item-list "$PROJECT_NUMBER" --owner "$OWNER" --format json 2>/dev/null | \
-    jq -r "first(.items[] | select(.content.url == \"$ISSUE_URL\")) | .id")
+  ITEM_ID=""
+  for i in 1 2 3; do
+    ITEM_ID=$(gh project item-list "$PROJECT_NUMBER" --owner "$OWNER" --format json --limit 200 2>/dev/null | \
+      jq -r "first(.items[] | select(.content.url == \"$ISSUE_URL\")) | .id")
+    [ -n "$ITEM_ID" ] && [ "$ITEM_ID" != "null" ] && break
+    sleep 2
+  done
   PROJECT_ID=$(gh project view "$PROJECT_NUMBER" --owner "$OWNER" --format json 2>/dev/null | jq -r '.id')
 
   if [ -z "$ITEM_ID" ]; then
