@@ -47,17 +47,9 @@ fi
 ITEM_ID=""
 PROJECT_ID=""
 if [ -n "$PROJECT_NUMBER" ]; then
-  gh project item-add "$PROJECT_NUMBER" --owner "$OWNER" --url "$ISSUE_URL" 2>/dev/null || true
-  sleep 3
+  ITEM_ID=$(gh project item-add "$PROJECT_NUMBER" --owner "$OWNER" --url "$ISSUE_URL" --format json --jq '.id' 2>/dev/null || true)
 
   FIELDS=$(gh project field-list "$PROJECT_NUMBER" --owner "$OWNER" --format json 2>/dev/null)
-  ITEM_ID=""
-  for i in 1 2 3; do
-    ITEM_ID=$(gh project item-list "$PROJECT_NUMBER" --owner "$OWNER" --format json --limit 200 2>/dev/null | \
-      jq -r "first(.items[] | select(.content.url == \"$ISSUE_URL\")) | .id")
-    [ -n "$ITEM_ID" ] && [ "$ITEM_ID" != "null" ] && break
-    sleep 2
-  done
   PROJECT_ID=$(gh project view "$PROJECT_NUMBER" --owner "$OWNER" --format json 2>/dev/null | jq -r '.id')
 
   if [ -z "$ITEM_ID" ]; then
@@ -81,13 +73,28 @@ if [ -n "$PROJECT_NUMBER" ]; then
     set_select "Priority" "$PRIORITY"
     set_select "Size" "$SIZE"
 
-    # Sprint: 최신 iteration 자동 설정
+    # Sprint: GraphQL로 iteration 필드의 선택지 목록을 가져와서 현재 날짜에 해당하는 sprint 설정
     SPRINT_FIELD_ID=$(echo "$FIELDS" | jq -r '.fields[] | select(.type == "ProjectV2IterationField") | .id')
-    SPRINT_ITERATION_ID=$(gh project item-list "$PROJECT_NUMBER" --owner "$OWNER" --format json --limit 1 2>/dev/null | \
-      jq -r 'first(.items[] | to_entries[] | select(.value | type == "object" and has("iterationId")) | .value) | .iterationId')
+    if [ -n "$SPRINT_FIELD_ID" ]; then
+      TODAY=$(date +%Y-%m-%d)
+      SPRINT_ITERATION_ID=$(gh api graphql -f query="
+        query {
+          node(id: \"$SPRINT_FIELD_ID\") {
+            ... on ProjectV2IterationField {
+              configuration {
+                iterations { id title startDate duration }
+              }
+            }
+          }
+        }" 2>/dev/null | jq -r --arg today "$TODAY" '
+        [.data.node.configuration.iterations[] |
+          .endDate = (.startDate | strptime("%Y-%m-%d") | mktime + (.duration * 86400) | strftime("%Y-%m-%d")) |
+          select(.startDate <= $today and .endDate > $today)
+        ] | first | .id // empty')
 
-    [ -n "$SPRINT_FIELD_ID" ] && [ -n "$SPRINT_ITERATION_ID" ] && [ "$SPRINT_ITERATION_ID" != "null" ] && \
-      gh project item-edit --id "$ITEM_ID" --field-id "$SPRINT_FIELD_ID" --project-id "$PROJECT_ID" --iteration-id "$SPRINT_ITERATION_ID" 2>/dev/null || true
+      [ -n "$SPRINT_ITERATION_ID" ] && \
+        gh project item-edit --id "$ITEM_ID" --field-id "$SPRINT_FIELD_ID" --project-id "$PROJECT_ID" --iteration-id "$SPRINT_ITERATION_ID" 2>/dev/null || true
+    fi
   fi
 fi
 
