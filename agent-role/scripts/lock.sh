@@ -4,19 +4,31 @@
 
 ROLE_FILE="$1"
 PID="$2"
-NOW=$(date '+%Y-%m-%d %H:%M')
+NOW=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+LOCK_DIR="${ROLE_FILE%.md}.lock"
 
 [ ! -f "$ROLE_FILE" ] && exit 1
 
-# 현재 잠금 상태 확인
-LOCKED=$(grep '^- locked: ' "$ROLE_FILE" | awk '{print $NF}')
-if [ "$LOCKED" = "true" ]; then
-  LOCK_PID=$(grep '^- locked_by:' "$ROLE_FILE" | awk '{print $NF}')
-  if kill -0 "$LOCK_PID" 2>/dev/null; then
+# atomic lock 획득 (mkdir)
+if ! mkdir "$LOCK_DIR" 2>/dev/null; then
+  # mkdir 실패 → pid 기록 대기 후 체크
+  sleep 1
+  LOCK_PID=""
+  [ -f "$LOCK_DIR/pid" ] && LOCK_PID=$(cat "$LOCK_DIR/pid")
+  if [ -n "$LOCK_PID" ] && kill -0 "$LOCK_PID" 2>/dev/null; then
     echo "ERROR: $ROLE_FILE is locked by pid $LOCK_PID (alive)" >&2
     exit 1
   fi
+  # dead process 또는 pid 미기록 → stale lock 정리 후 재시도
+  rm -rf "$LOCK_DIR"
+  if ! mkdir "$LOCK_DIR" 2>/dev/null; then
+    echo "ERROR: $ROLE_FILE lock 획득 실패" >&2
+    exit 1
+  fi
 fi
+
+# pid를 lock 디렉토리에 즉시 기록
+echo "$PID" > "$LOCK_DIR/pid"
 
 # 잠금 설정
 sed -i.bak "s/^- locked: .*/- locked: true/" "$ROLE_FILE"

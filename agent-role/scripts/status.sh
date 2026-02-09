@@ -15,7 +15,7 @@ AGENT_DIR=".agent"
 if [ -n "$1" ]; then
   JOB_DIRS=("$1")
 else
-  JOB_DIRS=($(ls -d "$AGENT_DIR"/job-* 2>/dev/null | sort -t- -k2 -n | tail -1))
+  mapfile -t JOB_DIRS < <(ls -d "$AGENT_DIR"/job-* 2>/dev/null | sort -t- -k2 -n | tail -1)
 fi
 
 [ ${#JOB_DIRS[@]} -eq 0 ] && echo "job 폴더가 없습니다" && exit 1

@@ -26,7 +26,8 @@ PROMPT_FILES=()
 # job.md 필드 자동 기록: 마지막 빈 필드 행을 찾아 값 채우기
 update_job_field() {
   local FILE="$1" FIELD="$2" VALUE="$3"
-  local LINE=$(grep -n "^- ${FIELD}: *$" "$FILE" | tail -1 | cut -d: -f1)
+  local LINE
+  LINE=$(grep -n "^- ${FIELD}: *$" "$FILE" | tail -1 | cut -d: -f1)
   if [ -n "$LINE" ]; then
     sed -i.bak "${LINE}s/.*/- ${FIELD}: ${VALUE}/" "$FILE"
     rm -f "${FILE}.bak"
@@ -57,7 +58,7 @@ PROMPT_EOF
   LOG_FILE="/tmp/$(basename "${ROLE_FILE%.md}").log"
   agent -p --force --workspace "$WORKSPACE" "$(cat "$PROMPT_FILE")" > "$LOG_FILE" 2>&1 &
   AGENT_PID=$!
-  PIDS+=($AGENT_PID)
+  PIDS+=("$AGENT_PID")
 
   # delegate에서 직접 lock (agent 프로세스 PID 기록)
   "$SKILLS_DIR/lock.sh" "$ROLE_FILE" "$AGENT_PID"
@@ -91,6 +92,7 @@ for i in "${!PIDS[@]}"; do
   else
     LOG_FILE="/tmp/$(basename "${ROLE_FILE%.md}").log"
     echo "FAIL $ROLE_ID (status=$STATUS, exit=$CODE, log=$LOG_FILE)"
+    rm -rf "${ROLE_FILE%.md}.lock" 2>/dev/null
     sed -i.bak "s/^- status: .*/- status: failed/" "$ROLE_FILE"
     sed -i.bak "s/^- locked: .*/- locked: false/" "$ROLE_FILE"
     sed -i.bak "s/^- locked_by: .*/- locked_by: -/" "$ROLE_FILE"
