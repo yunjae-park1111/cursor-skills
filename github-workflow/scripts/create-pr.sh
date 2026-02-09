@@ -86,7 +86,7 @@ if [ -n "$EXISTING_PR" ]; then
   PR_URL=$(gh pr view "$EXISTING_PR" --json url --jq '.url')
   ACTION="updated"
 else
-  PR_URL=$(gh pr create --title "$PR_TITLE" --base "$TARGET_BRANCH" --body "$PR_BODY")
+  PR_URL=$(gh pr create --title "$PR_TITLE" --base "$TARGET_BRANCH" --body "$PR_BODY" --assignee @me)
   ACTION="created"
 fi
 
