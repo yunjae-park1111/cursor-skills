@@ -1,4 +1,6 @@
 #!/bin/bash
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
 # GitHub PR 생성 자동화
 # Usage: create-pr.sh [issue_number] [target_branch]
 #

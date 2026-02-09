@@ -1,4 +1,6 @@
 #!/bin/bash
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
 # 모든 역할의 결과 요약만 추출 (메인이 빠르게 판단하기 위한 용도)
 # Usage: summary.sh [job-dir]
 #

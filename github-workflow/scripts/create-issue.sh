@@ -1,4 +1,6 @@
 #!/bin/bash
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
 # GitHub 이슈 생성 및 프로젝트 연결 자동화
 # Usage: create-issue.sh <title>
 #

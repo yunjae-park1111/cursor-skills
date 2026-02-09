@@ -1,4 +1,6 @@
 #!/bin/bash
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
 # 역할 잠금 해제 + 상태 completed 변경
 # Usage: unlock.sh <role-file>
 

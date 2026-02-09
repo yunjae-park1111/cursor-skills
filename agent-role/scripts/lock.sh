@@ -1,4 +1,6 @@
 #!/bin/bash
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
 # 역할 잠금 설정 + 상태 in_progress 변경
 # Usage: lock.sh <role-file> <pid>
 

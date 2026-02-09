@@ -1,4 +1,6 @@
 #!/bin/bash
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
 # 여러 역할을 병렬로 CLI 에이전트에 위임
 # Usage: delegate.sh <role-file1> <role-file2> [role-file3] ...
 #

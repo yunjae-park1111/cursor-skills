@@ -1,4 +1,6 @@
 #!/bin/bash
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
 # 개별 역할 문서 기반 실시간 상태 조회
 # Usage: status.sh [job-dir]
 #   job-dir 지정 시 해당 job만, 미지정 시 최신 job 조회

@@ -1,4 +1,6 @@
 #!/bin/bash
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
 # job 구조 초기화 + 역할 문서 생성
 # Usage: job-init.sh <job-dir> <goal> <target> [ref]
 #   PURPOSE 환경변수: 첫 호출 시 job.md의 ## 목적에 기록 (선택)
