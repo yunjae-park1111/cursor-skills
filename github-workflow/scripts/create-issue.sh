@@ -88,7 +88,7 @@ if [ -n "$PROJECT_NUMBER" ]; then
           }
         }" 2>/dev/null | jq -r --arg today "$TODAY" '
         [.data.node.configuration.iterations[] |
-          .endDate = (.startDate | strptime("%Y-%m-%d") | mktime + (.duration * 86400) | strftime("%Y-%m-%d")) |
+          .endDate = ((.startDate | strptime("%Y-%m-%d") | mktime) + (.duration * 86400) | strftime("%Y-%m-%d")) |
           select(.startDate <= $today and .endDate > $today)
         ] | first | .id // empty')
 
