@@ -57,8 +57,8 @@ if [ ! -f "$JOB_FILE" ]; then
 ${PURPOSE:-}
 
 ## 역할
-| ID | Scope | Status | Locked By | Locked At |
-|----|-------|--------|-----------|-----------|
+| ID | Round | Scope |
+|----|-------|-------|
 
 ## Round 1
 - goal:
@@ -121,8 +121,10 @@ cat > "$ROLE_FILE" <<EOF
 EOF
 
 # job.md 역할 테이블에 행 추가
+CURRENT_ROUND=$(grep -o '^## Round [0-9]*' "$JOB_FILE" | tail -1 | awk '{print $NF}')
+CURRENT_ROUND=${CURRENT_ROUND:-1}
 SCOPE_SHORT=$(echo "$GOAL" | cut -c1-60)
-TABLE_ROW="| role-${ROLE_NUM} | ${SCOPE_SHORT} | idle | - | - |"
+TABLE_ROW="| role-${ROLE_NUM} | ${CURRENT_ROUND} | ${SCOPE_SHORT} |"
 LAST_TABLE_LINE=$(grep -n '^|' "$JOB_FILE" | tail -1 | cut -d: -f1)
 if [ -n "$LAST_TABLE_LINE" ]; then
   awk -v row="$TABLE_ROW" -v n="$LAST_TABLE_LINE" 'NR==n{print; print row; next}1' "$JOB_FILE" > "${JOB_FILE}.tmp" && mv "${JOB_FILE}.tmp" "$JOB_FILE"

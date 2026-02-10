@@ -69,7 +69,7 @@ description: 멀티 에이전트 역할 기반 작업 관리 및 CLI 병렬 위�
    a. `summary.sh`로 전체 역할 요약을 한 번에 확인한다 (역할이 많을 때 유용)
    b. `## 검증` 섹션 확인 — 명령어+실제 출력 스니펫(3줄 이상)이 있으면 재검증 생략, 불충분하면 메인이 직접 재검증
    c. 필요 시 `## 결과` 상세 내용 읽기
-   d. delegate.sh가 역할 문서의 status를 자동 갱신한다 (completed/failed + lock 해제). 메인은 job.md 역할 테이블만 갱신
+   d. delegate.sh가 역할 문서의 status를 자동 갱신한다 (completed/failed + lock 해제)
    e. job.md의 해당 Round에 `### 결과`, `### 후속 제안`을 각 역할 문서를 분석·판단하여 기록한다 (단순 복붙 금지, 메인이 판단하여 정리)
 5. **실패 재시도** (failed가 1건 이상일 때):
    a. 실패한 역할의 `/tmp/role-N.log`와 `## 결과` 섹션을 읽어 실패 원인을 진단한다
@@ -98,7 +98,7 @@ description: 멀티 에이전트 역할 기반 작업 관리 및 CLI 병렬 위�
 
 `job-init.sh`로 생성. 첫 호출 시 `PURPOSE=` 환경변수로 목적이 자동 기록된다. 메인은 Round의 goal/target을 채운다.
 
-- **역할 테이블**: job-init.sh가 역할 추가 시 자동 갱신. 역할 문서의 status는 delegate.sh(lock→in_progress, 실패→failed)와 워커(unlock→completed)가 자동 관리. 메인은 job.md 테이블만 갱신.
+- **역할 테이블**: job-init.sh가 역할 추가 시 자동 갱신. 역할 문서의 status는 delegate.sh(lock→in_progress, 실패→failed)와 워커(unlock→completed)가 자동 관리.
 - **Delegate**: pid/started_at/ended_at은 delegate.sh가 자동 기록.
 - **결과/후속 제안**: 메인이 역할 문서를 분석·판단하여 기록 (단순 복붙 금지).
 

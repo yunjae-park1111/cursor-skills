@@ -13,7 +13,7 @@ job-{n}/ — 작업 단위 (`job-init.sh`가 자동 생성)
 | 섹션 | 내용 | 수정 주체 |
 |------|------|-----------|
 | 목적 | 이번 작업의 최종 목적 | job-init.sh(PURPOSE=, 첫 호출), 메인 |
-| 역할 | ID/Scope/Status 테이블 | job-init.sh(추가), 메인(Status 갱신) |
+| 역할 | ID/Round/Scope 테이블 | job-init.sh(추가) |
 | Round N > goal/target | 이 라운드의 목적과 범위 | 메인 |
 | Round N > 작업 | 이 라운드에서 각 역할이 수행할 작업 요약 | 메인 |
 | Round N > Delegate | pid, 시작/종료 시각 | delegate.sh(자동 기록) |
