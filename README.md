@@ -145,6 +145,7 @@ GitHub PR, 이슈, 커밋 작업을 자동화하는 스킬입니다.
 
 - [Cursor IDE](https://cursor.com) (Agent 기능 활성화)
 - Cursor CLI의 `agent` 명령 (agent-role 스킬, 병렬 위임 시 필요)
+- [Node.js](https://nodejs.org/) (agent-role 스킬, 로그 뷰어/파서 실행 시 필요)
 - [gh CLI](https://cli.github.com/) 2.0+ (github-workflow 스킬)
 - gh extension: [yahsan2/gh-sub-issue](https://github.com/yahsan2/gh-sub-issue) (Epic 서브이슈 연결 시)
 
