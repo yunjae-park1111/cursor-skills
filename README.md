@@ -77,13 +77,13 @@ Cursor CLI(`agent` 명령)를 활용하여 여러 작업을 병렬로 위임·�
 
 | 스크립트 | 용도 |
 |---------|------|
-| `delegate.sh <role-file> [role-file2] ...` | CLI 병렬 위임. lock 자동 수행, 역할별 로그 저장, 실패 시 status=failed 자동 전환, job.md에 pid/started_at/ended_at 자동 기록 |
+| `delegate.sh <role-file> [role-file2] ...` | CLI 병렬 위임. lock 자동 수행(agent PID 기록), 역할별 로그(job-dir/log/role-N.log) 저장, 실패 시 status=failed 자동 전환, job.md에 pid/started_at/ended_at 자동 기록 |
 | `job-init.sh <job-dir> <goal> <target> [ref]` | job 구조 초기화 + 역할 문서 생성 (번호 자동, 테이블 자동 추가). 첫 호출 시 `PURPOSE=` 환경변수로 job 목적 설정 |
 | `summary.sh [job-dir]` | 모든 역할의 결과 요약만 추출 (메인 결과 수집용) |
 | `lock.sh <role-file> <pid>` | 잠금 + status: in_progress |
 | `unlock.sh <role-file>` | 잠금 해제 + status: completed |
-| `status.sh [job-dir]` | 실시간 상태 조회 |
-| `parse-stream.js` | stream-json 출력을 읽기 가능한 형태로 실시간 변환 (delegate.sh가 자동 사용) |
+| `status.sh [job-dir]` | 개별 역할 문서 기반 실시간 상태 조회 |
+| `parse-stream.js` | agent CLI의 stream-json 출력을 사람이 읽을 수 있는 형태로 실시간 변환. delegate.sh가 자동 사용 |
 | `log-viewer.js` | 브라우저 로그 뷰어. delegate.sh가 자동 실행, 하트비트로 자동 종료. 수동: `node .agent/job-{n}/log-viewer.js [port]` |
 
 ### 역할 분할 예시
@@ -111,7 +111,7 @@ GitHub PR, 이슈, 커밋 작업을 자동화하는 스킬입니다.
 
 | 스크립트 | 용도 |
 |---------|------|
-| `create-pr.sh [issue_number] [target_branch]` | PR 생성 자동화. 이슈 번호 추출, 타겟 브랜치 결정, 푸시 상태 확인 |
+| `create-pr.sh [issue_number] [target_branch]` | PR 생성 자동화. 이슈 번호 추출, 타겟 브랜치 결정, 푸시, PR 생성까지 한 번에 처리 |
 | `create-issue.sh <title>` | 이슈 생성 자동화. 환경변수로 Epic 연결, 프로젝트 필드 설정 |
 
 ---

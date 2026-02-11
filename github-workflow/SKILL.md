@@ -120,7 +120,7 @@ feat: add user authentication system
 ### 자동 설정
 
 - `PROJECT_NUMBER` 지정 시 Status, Priority, Size 필드를 자동 설정한다.
-- Sprint(Iteration) 필드는 프로젝트에 존재하는 최신 iteration을 자동 선택한다.
+- Sprint(Iteration) 필드는 현재 날짜에 해당하는 iteration을 자동 선택한다.
 
 ### 주의사항
 
