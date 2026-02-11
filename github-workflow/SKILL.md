@@ -103,13 +103,13 @@ feat: add user authentication system
 
 ### 생성
 
-`~/.cursor/skills/github-workflow/scripts/create-pr.sh [issue_number] [target_branch]`를 실행한다. 이슈 번호 추출, 타겟 브랜치 결정, 푸시, PR 생성까지 한 번에 처리한다. `PR_BODY` 환경변수로 본문을 지정할 수 있다.
+`scripts/create-pr.sh [issue_number] [target_branch]`를 실행한다. 이슈 번호 추출, 타겟 브랜치 결정, 푸시, PR 생성까지 한 번에 처리한다. `PR_BODY` 환경변수로 본문을 지정할 수 있다.
 
 ## 이슈
 
 ### 생성
 
-`~/.cursor/skills/github-workflow/scripts/create-issue.sh <title>`를 실행한다. 환경변수로 옵션을 지정한다.
+`scripts/create-issue.sh <title>`를 실행한다. 환경변수로 옵션을 지정한다.
 
 | 환경변수 | 설명 |
 |----------|------|
