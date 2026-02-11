@@ -10,6 +10,9 @@ git clone git@github.com:yunjae-park1111/cursor-skills.git ~/.cursor/skills
 
 설치 후 Cursor가 자동으로 스킬을 인식합니다. 아래 User Rules 섹션을 Cursor User Rules에 추가하세요.
 
+## User Rules
+
+```
 ## 멀티 에이전트
 - "병렬", "역할" 키워드가 포함되면 /agent-role 스킬을 참조한다.
 - 모든 병렬 위임은 Cursor CLI(agent 명령, delegate.sh)로 통일한다.
@@ -31,6 +34,7 @@ git clone git@github.com:yunjae-park1111/cursor-skills.git ~/.cursor/skills
 |------|------|--------------|
 | [agent-role](#agent-role) | 멀티 에이전트 역할 기반 병렬 작업 관리 | 병렬, 역할, CLI, 백그라운드 |
 | [github-workflow](#github-workflow) | GitHub PR, 이슈, 커밋 생성 및 관리 자동화 | PR, 이슈, 커밋 |
+```
 
 ---
 
