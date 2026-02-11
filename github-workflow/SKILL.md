@@ -18,6 +18,10 @@ gh extension install yahsan2/gh-sub-issue
 
 GitHub PR, 이슈, 커밋 작업 시 이 스킬을 따른다.
 
+## 스크립트 경로
+
+모든 스크립트는 `~/.cursor/skills/github-workflow/scripts/`에 위치한다.
+
 ## 브랜치 생성
 
 | 종류 | 형식 | 예시 |
@@ -99,13 +103,13 @@ feat: add user authentication system
 
 ### 생성
 
-`scripts/create-pr.sh [issue_number] [target_branch]`를 실행한다. 이슈 번호 추출, 타겟 브랜치 결정, 푸시, PR 생성까지 한 번에 처리한다. `PR_BODY` 환경변수로 본문을 지정할 수 있다.
+`~/.cursor/skills/github-workflow/scripts/create-pr.sh [issue_number] [target_branch]`를 실행한다. 이슈 번호 추출, 타겟 브랜치 결정, 푸시, PR 생성까지 한 번에 처리한다. `PR_BODY` 환경변수로 본문을 지정할 수 있다.
 
 ## 이슈
 
 ### 생성
 
-`scripts/create-issue.sh <title>`를 실행한다. 환경변수로 옵션을 지정한다.
+`~/.cursor/skills/github-workflow/scripts/create-issue.sh <title>`를 실행한다. 환경변수로 옵션을 지정한다.
 
 | 환경변수 | 설명 |
 |----------|------|
