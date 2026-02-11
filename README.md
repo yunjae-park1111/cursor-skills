@@ -44,6 +44,16 @@ Cursor CLI(`agent` 명령)를 활용하여 여러 작업을 병렬로 위임·�
 - **CLI 통일**: 모든 병렬 위임은 `delegate.sh`를 통해 Cursor CLI(`agent`)로 실행
 - **메인은 오케스트레이터**: 역할 문서 생성, 위임, 결과 수집만 수행. 대상 파일을 직접 수정하지 않음
 
+### 주요 기능
+
+- **역할 문서 기반 병렬 위임**: `job-init.sh`로 역할 문서 생성 → `delegate.sh`로 Cursor CLI agent를 역할별 병렬 실행
+- **자동 상태 관리**: lock.sh(in_progress) → unlock.sh(completed), 실패 시 delegate.sh가 failed로 자동 전환
+- **동시 수정 방지**: 역할 문서에 PID 기반 lock/unlock으로 워커 간 충돌 방지
+- **브라우저 대시보드**: 역할별 탭, 상태 표시, 로그 실시간 스트리밍(SSE), 정규식 필터, 로그 레벨 색상 구분. Node.js 필요
+- **실패 자동 감지 및 재위임**: delegate.sh가 agent exit code로 실패 감지 → status=failed 전환. 메인이 로그/결과 확인 후 작업 수정하여 재위임
+- **라운드 기반 반복**: 결과 수집 → 후속 판단 → 추가 작업이 필요하면 다음 라운드 역할 생성
+- **세션 중단 이어받기**: `.done` 파일 존재 여부와 delegate PID 생존 상태로 마지막 단계를 판단하여 대기/수집/재위임 중 적절한 단계부터 재개
+
 ### 작업 구조
 
 ```
@@ -100,12 +110,18 @@ Cursor CLI(`agent` 명령)를 활용하여 여러 작업을 병렬로 위임·�
 
 GitHub PR, 이슈, 커밋 작업을 자동화하는 스킬입니다.
 
-### 핵심 기능
+### 핵심 개념
 
-- **커밋**: Conventional Commits 규칙 (`<type>: <summary>`)
-- **브랜치 생성**: `issue/{N}`, `epic/{N}` 형식
-- **PR 생성**: 이슈 번호 자동 추출, 타겟 브랜치 결정, 푸시 자동 처리
-- **이슈 생성**: 프로젝트 연결, Epic 서브이슈 연결, 필드 자동 설정
+- **스크립트 기반 자동화**: PR/이슈 생성을 쉘 스크립트로 한 번에 처리
+- **규칙 통일**: Conventional Commits, 브랜치 네이밍, PR 본문 템플릿을 일관되게 적용
+- **프로젝트 연동**: 이슈 생성 시 GitHub Projects 필드(Sprint, Priority, Size)를 자동 설정
+
+### 주요 기능
+
+- **커밋 메시지**: Conventional Commits 규칙 (`<type>: <summary>`), 11개 타입 지원
+- **브랜치 생성**: 이슈/에픽 번호 기반 자동 네이밍 (`issue/{N}`, `epic/{N}`)
+- **PR 생성**: 브랜치명에서 이슈 번호 추출, 리모트 HEAD 기반 타겟 브랜치 결정, 푸시 상태 확인 후 자동 푸시, 6개 섹션 본문 템플릿 적용
+- **이슈 생성**: GitHub Projects 자동 연결, Epic 서브이슈 연결(`gh sub-issue`), 현재 Sprint 자동 선택, Priority/Size 필드 자동 설정
 
 ### 스크립트
 

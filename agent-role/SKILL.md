@@ -5,6 +5,14 @@ description: 멀티 에이전트 역할 기반 작업 관리 및 CLI 병렬 위�
 
 # Agent Role Management
 
+## 사전 요구사항
+
+로그 뷰어/파서 실행에 Node.js가 필요하다. 없으면 대시보드와 로그 파싱이 비활성화된다 (작업 자체는 정상 동작).
+
+```bash
+node --version || brew install node
+```
+
 ## 구조
 
 ```
