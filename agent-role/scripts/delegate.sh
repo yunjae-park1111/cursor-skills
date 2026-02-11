@@ -9,7 +9,7 @@ export LC_ALL=en_US.UTF-8
 #
 # 완료 시 요약 출력:
 #   OK 1
-#   FAIL 2 (status=in_progress, exit=1, log=/tmp/role-2.log)
+#   FAIL 2 (status=in_progress, exit=1, log=.agent/job-1/log/role-2.log)
 #   ---
 #   total=2 completed=1 failed=1
 #
@@ -47,6 +47,7 @@ for ROLE_FILE in "$@"; do
 다음 순서를 반드시 따라라:
 - '## 현재 상태'와 '## Lock' 섹션은 직접 수정하지 않는다.
 - lock은 delegate가 이미 수행했다. unlock.sh가 completed로 자동 변경한다.
+- 작업 중 임시 파일이 필요하면 /tmp 에서 생성한다. 워크스페이스에 임시 파일을 만들지 않는다.
 1. ${ROLE_FILE}를 읽는다.
 2. 작업 섹션에 정의된 작업을 수행한다.
 3. '결과 요약' 섹션에 한 줄 요약을 기록한다.
@@ -57,8 +58,11 @@ for ROLE_FILE in "$@"; do
 8. ${SKILLS_DIR}/unlock.sh ${ROLE_FILE} 를 Shell로 실행한다.
 PROMPT_EOF
 
-  LOG_FILE="/tmp/$(basename "${ROLE_FILE%.md}").log"
-  agent -p --force --workspace "$WORKSPACE" "$(cat "$PROMPT_FILE")" > "$LOG_FILE" 2>&1 &
+  LOG_DIR="$(dirname "$ROLE_FILE")/log"
+  mkdir -p "$LOG_DIR"
+  LOG_FILE="$LOG_DIR/$(basename "${ROLE_FILE%.md}").log"
+  > "$LOG_FILE"
+  script -q >(node "$SKILLS_DIR/parse-stream.js" >> "$LOG_FILE") agent -p --force --output-format stream-json --stream-partial-output --workspace "$WORKSPACE" "$(cat "$PROMPT_FILE")" &
   AGENT_PID=$!
   PIDS+=("$AGENT_PID")
 
@@ -78,6 +82,15 @@ if [ -f "$JOB_FILE" ]; then
   update_job_field "$JOB_FILE" "started_at" "$NOW"
 fi
 
+# log-viewer 백그라운드 실행 (빈 포트 자동 탐색)
+VIEWER="$JOB_DIR/log-viewer.js"
+if [ -f "$VIEWER" ] && command -v node &>/dev/null; then
+  VIEWER_PORT=$(node -e "const s=require('net').createServer();s.listen(0,()=>{console.log(s.address().port);s.close()})")
+  node "$VIEWER" "$VIEWER_PORT" &
+  VIEWER_PID=$!
+  echo "Log Viewer: http://localhost:${VIEWER_PORT} (pid=$VIEWER_PID)"
+fi
+
 COMPLETED=0
 FAILED=0
 
@@ -92,7 +105,7 @@ for i in "${!PIDS[@]}"; do
     echo "OK $ROLE_ID"
     ((COMPLETED++))
   else
-    LOG_FILE="/tmp/$(basename "${ROLE_FILE%.md}").log"
+    LOG_FILE="$(dirname "$ROLE_FILE")/log/$(basename "${ROLE_FILE%.md}").log"
     echo "FAIL $ROLE_ID (status=$STATUS, exit=$CODE, log=$LOG_FILE)"
     rm -rf "${ROLE_FILE%.md}.lock" 2>/dev/null
     sed -i.bak "s/^- status: .*/- status: failed/" "$ROLE_FILE"

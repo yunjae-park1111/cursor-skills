@@ -12,7 +12,11 @@ description: 멀티 에이전트 역할 기반 작업 관리 및 CLI 병렬 위�
 └── job-{n}/
     ├── job.md                ← 목적, 역할 테이블, 라운드별 결과 (메인 + 스크립트가 수정)
     ├── role-1.md             ← 개별 역할 문서
-    └── role-2.md
+    ├── role-2.md
+    ├── log-viewer.js         ← 브라우저 로그 뷰어 (job-init.sh가 자동 복사)
+    └── log/
+        ├── role-1.log        ← 역할별 agent 로그 (delegate.sh가 자동 생성)
+        └── role-2.log
 ```
 
 - job-{n}: 작업 단위. `job-init.sh`가 자동 생성한다.
@@ -27,12 +31,14 @@ description: 멀티 에이전트 역할 기반 작업 관리 및 CLI 병렬 위�
 
 | 스크립트 | 용도 |
 |---------|------|
-| `delegate.sh <role-file> [role-file2] ...` | CLI 병렬 위임. lock 자동 수행(agent PID 기록), 역할별 로그(/tmp/role-N.log) 저장, 실패 시 status=failed 자동 전환, job.md에 pid/started_at/ended_at 자동 기록 |
+| `delegate.sh <role-file> [role-file2] ...` | CLI 병렬 위임. lock 자동 수행(agent PID 기록), 역할별 로그(job-dir/log/role-N.log) 저장, 실패 시 status=failed 자동 전환, job.md에 pid/started_at/ended_at 자동 기록 |
 | `job-init.sh <job-dir> <goal> <target> [ref]` | job 구조 초기화 + 역할 문서 생성 (번호 자동, 테이블 자동 추가). 첫 호출 시 `PURPOSE=` 환경변수로 job 목적 설정 |
 | `summary.sh [job-dir]` | 모든 역할의 결과 요약만 추출 (메인 결과 수집용) |
 | `lock.sh <role-file> <pid>` | 잠금 + status: in_progress |
 | `unlock.sh <role-file>` | 잠금 해제 + status: completed |
 | `status.sh [job-dir]` | 개별 역할 문서 기반 실시간 상태 조회 |
+| `parse-stream.js` | agent CLI의 stream-json 출력을 사람이 읽을 수 있는 형태로 실시간 변환. delegate.sh가 자동 사용 |
+| `log-viewer.js` | 브라우저 로그 뷰어. delegate.sh가 자동 실행, 하트비트로 자동 종료. 수동: `node .agent/job-{n}/log-viewer.js [port]` |
 
 경로 prefix: `~/.cursor/skills/agent-role/scripts/`
 
@@ -72,7 +78,7 @@ description: 멀티 에이전트 역할 기반 작업 관리 및 CLI 병렬 위�
    d. delegate.sh가 역할 문서의 status를 자동 갱신한다 (completed/failed + lock 해제)
    e. job.md의 해당 Round에 `### 결과`, `### 후속 제안`을 각 역할 문서를 분석·판단하여 기록한다 (단순 복붙 금지, 메인이 판단하여 정리)
 5. **실패 재시도** (failed가 1건 이상일 때):
-   a. 실패한 역할의 `/tmp/role-N.log`와 `## 결과` 섹션을 읽어 실패 원인을 진단한다
+   a. 실패한 역할의 `job-dir/log/role-N.log`와 `## 결과` 섹션을 읽어 실패 원인을 진단한다
    b. 원인에 따라 역할 문서의 `## 작업`을 수정한다 (체크리스트 보강, 범위 축소 등)
    c. status를 idle로 초기화하고 delegate.sh로 재위임한다
    d. 3~4단계를 반복한다

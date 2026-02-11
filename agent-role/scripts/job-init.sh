@@ -44,6 +44,10 @@ fi
 # job-dir 생성
 if [ ! -d "$JOB_DIR" ]; then
   mkdir -p "$JOB_DIR"
+  cat > "$JOB_DIR/log-viewer.js" <<'VIEWER_EOF'
+#!/usr/bin/env node
+require(require('path').join(process.env.HOME, '.cursor/skills/agent-role/scripts/log-viewer.js'));
+VIEWER_EOF
   echo "Created: $JOB_DIR/"
 fi
 

@@ -43,6 +43,8 @@ job-{n}/ — 작업 단위 (`job-init.sh`가 자동 생성)
 | `status.sh` | 실시간 상태 조회 |
 | `lock.sh` | 잠금 + status: in_progress |
 | `unlock.sh` | 잠금 해제 + status: completed |
+| `parse-stream.js` | stream-json 출력을 읽기 가능한 형태로 실시간 변환 (delegate.sh가 자동 사용) |
+| `log-viewer.js` | 브라우저 로그 뷰어 (delegate.sh가 자동 실행, 하트비트로 자동 종료) |
 
 ### Status 값
 | 값 | 의미 |
@@ -51,6 +53,15 @@ job-{n}/ — 작업 단위 (`job-init.sh`가 자동 생성)
 | in_progress | 워커가 작업 중 (lock.sh가 설정) |
 | completed | 작업 완료 (unlock.sh가 설정) |
 | failed | 작업 실패 (delegate.sh가 자동 설정 또는 메인이 수동 설정) |
+
+### log/ (자동 생성)
+delegate.sh가 역할별 agent 로그를 `log/role-N.log`에 저장.
+
+### log-viewer.js (자동 복사)
+job-init.sh가 job 디렉토리 생성 시 자동 복사. delegate.sh가 자동 실행하여 브라우저에서 역할별 로그를 실시간 확인.
+브라우저 탭 닫으면 하트비트 타임아웃으로 서버 자동 종료.
+
+수동 실행: `node .agent/job-{n}/log-viewer.js [port]`
 
 ### .done (자동 생성/삭제)
 delegate.sh 완료 시 job 폴더에 생성. 내용: `total=N completed=N failed=N`
