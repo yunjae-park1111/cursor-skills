@@ -4,6 +4,13 @@
 const readline = require('readline');
 const rl = readline.createInterface({ input: process.stdin });
 let thinkingBuf = '';
+let toolBuf = [];
+
+function flushTools() {
+  if (toolBuf.length === 0) return;
+  console.log(`[TOOL]\n${toolBuf.join('\n')}\n`);
+  toolBuf = [];
+}
 
 rl.on('line', (line) => {
   line = line.replace(/^\x04+/, '');
@@ -15,9 +22,10 @@ rl.on('line', (line) => {
       if (j.subtype === 'init') console.log(`[INIT] model=${j.model}`);
       break;
     case 'thinking':
+      flushTools();
       if (j.subtype === 'delta') thinkingBuf += j.text;
       else if (j.subtype === 'completed' && thinkingBuf) {
-        console.log(`[THINKING] ${thinkingBuf}`);
+        console.log(`[THINKING]\n${thinkingBuf}\n`);
         thinkingBuf = '';
       }
       break;
@@ -27,17 +35,21 @@ rl.on('line', (line) => {
       if (j.subtype === 'started') {
         const args = tc[name]?.args || {};
         const detail = args.path || args.pattern || args.command?.substring(0, 100) || '';
-        console.log(`[TOOL] ${name}${detail ? ' → ' + detail : ''}`);
+        toolBuf.push(`${name}${detail ? ' → ' + detail : ''}`);
       }
       break;
     }
     case 'assistant': {
+      flushTools();
       const text = j.message?.content?.[0]?.text;
-      if (text && !j.timestamp_ms) console.log(`[ASSISTANT]\n${text}`);
+      if (text && !j.timestamp_ms) console.log(`[ASSISTANT]\n${text}\n`);
       break;
     }
     case 'result':
-      console.log(`[RESULT] ${j.subtype} duration=${j.duration_ms}ms`);
+      flushTools();
+      console.log(`[RESULT]\n${j.subtype} duration=${j.duration_ms}ms\n`);
       break;
   }
 });
+
+rl.on('close', () => flushTools());

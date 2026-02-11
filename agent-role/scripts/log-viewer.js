@@ -139,7 +139,7 @@ const server = http.createServer((req, res) => {
 
   // HTML
   res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-  res.end(HTML.replace('__JOB_DIR__', path.basename(absJobDir)));
+  res.end(HTML.replaceAll('__JOB_DIR__', path.basename(absJobDir)));
 });
 
 server.listen(port, () => {
@@ -175,12 +175,6 @@ body {
   flex-shrink: 0;
 }
 .header .job-name { color: #58a6ff; font-size: 15px; font-weight: 600; }
-.header .badge {
-  padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;
-}
-.badge-live { background: #238636; color: #fff; animation: pulse 2s infinite; }
-.badge-done { background: #1f6feb; color: #fff; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
 .header .summary { color: #8b949e; font-size: 12px; margin-left: auto; }
 
 /* 역할 탭 */
@@ -255,13 +249,15 @@ body {
 .log-toolbar .log-size { color: #484f58; font-size: 11px; white-space: nowrap; }
 
 .log-content {
-  flex: 1; overflow-y: auto; padding: 8px 16px;
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  overflow-y: auto; padding: 8px 16px;
   font-size: 12px; line-height: 1.55; white-space: pre-wrap; word-break: break-all;
 }
 
-.log-line { padding: 1px 0; }
+.log-line { padding: 1px 0; display: flex; }
 .log-line:hover { background: #161b22; }
-.log-line .ln { color: #484f58; display: inline-block; width: 45px; text-align: right; margin-right: 12px; user-select: none; }
+.log-line .ln { color: #484f58; width: 45px; min-width: 45px; text-align: right; padding-right: 12px; user-select: none; flex-shrink: 0; }
+.log-line .txt { flex: 1; }
 
 .level-error { color: #f85149; }
 .level-warn { color: #d29922; }
@@ -289,7 +285,6 @@ body {
 
 <div class="header">
   <span class="job-name">__JOB_DIR__</span>
-  <span class="badge badge-live" id="liveBadge">LIVE</span>
   <span class="summary" id="headerSummary"></span>
 </div>
 
@@ -316,6 +311,8 @@ body {
 let roles = [];
 let activeRole = null;
 let autoScroll = true;
+let prevLogCache = {};
+let forceRender = false;
 
 // 하트비트
 setInterval(() => fetch('/heartbeat').catch(()=>{}), 3000);
@@ -327,7 +324,7 @@ es.onmessage = e => {
   roles = data.roles;
 
   // 첫 로드 시 첫 역할 선택
-  if (!activeRole && roles.length > 0) activeRole = roles[0].id;
+  if (!activeRole && roles.length > 0) { activeRole = roles[0].id; forceRender = true; }
 
   renderTabs();
   renderSidebar();
@@ -338,8 +335,6 @@ es.onmessage = e => {
   if (data.done) {
     document.getElementById('doneBanner').style.display = 'block';
     document.getElementById('doneBanner').textContent = '완료: ' + data.done;
-    document.getElementById('liveBadge').className = 'badge badge-done';
-    document.getElementById('liveBadge').textContent = 'DONE';
   }
 };
 
@@ -354,19 +349,31 @@ function renderHeader(data) {
   document.getElementById('headerSummary').textContent = 'Roles: ' + roles.length + ' | ' + parts.join(', ');
 }
 
+let prevTabsHtml = '';
 function renderTabs() {
   const container = document.getElementById('tabs');
-  container.innerHTML = roles.map(r =>
-    '<div class="tab' + (r.id === activeRole ? ' active' : '') + '" onclick="selectRole(\\'' + r.id + '\\')">'
+  const html = roles.map(r =>
+    '<div class="tab' + (r.id === activeRole ? ' active' : '') + '" data-role="' + r.id + '">'
     + '<span class="dot dot-' + r.status + '"></span>'
     + 'Role ' + r.id
     + '</div>'
   ).join('');
+  if (html !== prevTabsHtml) {
+    prevTabsHtml = html;
+    container.innerHTML = html;
+  }
 }
+
+// 이벤트 위임: 탭 컨테이너에 한 번만 바인딩
+document.getElementById('tabs').addEventListener('click', function(e) {
+  const tab = e.target.closest('.tab');
+  if (tab && tab.dataset.role) selectRole(tab.dataset.role);
+});
 
 function selectRole(id) {
   activeRole = id;
   autoScroll = true;
+  forceRender = true;
   renderTabs();
   renderSidebar();
   renderLog();
@@ -397,11 +404,19 @@ function renderLog() {
 
   const content = r.log || '(로그 없음)';
   const filter = document.getElementById('logFilter').value.trim();
+  const cacheKey = r.id + ':' + content.length + ':' + filter;
+
+  // 내용 변경 없으면 스킵 (스크롤 위치 보존)
+  if (!forceRender && prevLogCache[r.id] === cacheKey) return;
+  prevLogCache[r.id] = cacheKey;
+  forceRender = false;
+
   let regex = null;
   if (filter) { try { regex = new RegExp(filter, 'gi'); } catch {} }
 
   const lines = content.split('\\n');
   const container = document.getElementById('logContent');
+  const savedScroll = container.scrollTop;
   const wasAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 60;
 
   let html = '';
@@ -422,15 +437,19 @@ function renderLog() {
       regex.lastIndex = 0;
     }
 
-    html += '<div class="' + cls + '"><span class="ln">' + (i+1) + '</span>' + txt + '</div>';
+    html += '<div class="' + cls + '"><span class="ln">' + (i+1) + '</span><span class="txt">' + txt + '</span></div>';
   });
 
   container.innerHTML = html;
   document.getElementById('logSize').textContent = formatSize(r.logSize) + ' | ' + lines.length + ' lines';
 
-  if (autoScroll && wasAtBottom) scrollBottom();
+  // 스크롤 복원: 하단 고정이면 하단으로, 아니면 기존 위치 유지
+  if (autoScroll && wasAtBottom) {
+    scrollBottom();
+  } else {
+    container.scrollTop = savedScroll;
+  }
 
-  // 스크롤 버튼
   const atBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 60;
   document.getElementById('scrollBtn').style.display = atBottom ? 'none' : 'block';
 }
@@ -441,7 +460,7 @@ document.getElementById('logContent').addEventListener('scroll', function() {
   document.getElementById('scrollBtn').style.display = atBottom ? 'none' : 'block';
 });
 
-document.getElementById('logFilter').addEventListener('input', renderLog);
+document.getElementById('logFilter').addEventListener('input', () => { forceRender = true; renderLog(); });
 
 function scrollBottom() {
   const el = document.getElementById('logContent');
