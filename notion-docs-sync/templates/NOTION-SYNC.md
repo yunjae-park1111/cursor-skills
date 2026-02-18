@@ -63,7 +63,7 @@ pages:
 | 필드 | 설명 |
 |------|------|
 | `file` | yaml 파일 기준 상대 경로 |
-| `title` | Notion 페이지 제목 (`databases` 방식에서만 사용) |
+| `title` | Notion 페이지 제목 (필수). 동기화 시 페이지 제목을 업데이트한다 |
 | `Sync ID` | 고유 식별자. `{분류}-{이름}` 형식 (예: `spec-api-design`) |
 | `Parent` | 상위 문서의 Sync ID. 빈 문자열이면 최상위 |
 | `page_id` | Notion 페이지 ID (`pages` 방식에서만 사용) |

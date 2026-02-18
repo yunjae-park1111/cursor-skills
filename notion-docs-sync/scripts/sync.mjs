@@ -374,8 +374,19 @@ async function syncPageEntry(entry) {
   const sanitized = sanitizeBlocks(rawBlocks);
   const { blocks, hasFileUpload } = await processAttachments(sanitized);
 
-  console.log(`  업데이트: ${entry.file} → ${pageId}`);
-  await notion.pages.update({ page_id: pageId, erase_content: true });
+  if (!entry.title) {
+    throw new Error(`필수 필드 누락: title (${entry.file})`);
+  }
+  const updatePayload = {
+    page_id: pageId,
+    properties: {
+      title: { title: [{ text: { content: entry.title } }] },
+    },
+    erase_content: true,
+  };
+
+  console.log(`  업데이트: ${entry.file} → ${entry.title || pageId}`);
+  await notion.pages.update(updatePayload);
   await appendBlocks(pageId, blocks, hasFileUpload);
   console.log(`  완료: ${entry.file}`);
 }
