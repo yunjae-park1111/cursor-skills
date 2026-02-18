@@ -17,9 +17,11 @@ Markdown → Notion 동기화 문서 디렉토리.
 
 `.notion-sync.yaml`이 있는 폴더를 기준으로 한다.
 
-- 인덱스 파일은 하위 문서의 Parent 역할. `{분류}-index.md` 형식 (예: `spec/deploy-index.md`)
+- 인덱스 파일은 하위 문서의 Parent 역할. `{주제}-index.md` 형식 (예: `spec/deploy-index.md`)
 - 새 문서 추가 시 해당 디렉토리에 파일 생성 후 `.notion-sync.yaml`에 `Sync ID`와 `Parent` 등록
-- `Sync ID` 접두사: spec 문서는 `spec-`, guide 문서는 `guide-`
+- `Sync ID` 형식: `{분류}-{이름}`. 접두사는 디렉토리에 따라 `spec-` 또는 `guide-`
+  - 일반 문서: `spec-{이름}` (예: `spec-api-design`, `guide-deploy-process`)
+  - 인덱스 문서: `{분류}-{주제}-index` (예: `spec-deploy-index`, `guide-ops-index`)
 
 ### 동기화 실행
 
@@ -109,7 +111,7 @@ pages:
 
 - 영문 소문자 kebab-case (예: `api-design.md`, `deploy-process.md`)
 - 확장자 `.md`만 허용
-- 인덱스 파일: `{분류}-index.md` (예: `spec/deploy-index.md`, `guide/setup-index.md`)
+- 인덱스 파일: `{주제}-index.md` (예: `spec/deploy-index.md`, `guide/ops-index.md`)
 
 ### 헤딩 규칙
 
