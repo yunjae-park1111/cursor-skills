@@ -84,6 +84,7 @@ Cursor CLI(`agent` 명령)를 활용하여 여러 작업을 병렬로 위임·�
 - **자동 상태 관리**: lock.sh(in_progress) → unlock.sh(completed), 실패 시 delegate.sh가 failed로 자동 전환
 - **동시 수정 방지**: 역할 문서에 PID 기반 lock/unlock으로 워커 간 충돌 방지
 - **브라우저 대시보드**: 역할별 탭, 상태 표시, 로그 실시간 스트리밍(SSE), 정규식 필터, 로그 레벨 색상 구분. Node.js 필요
+- **스킬 주입**: CLI 에이전트는 스킬을 자동 인식하지 못함. 역할 문서의 `skills` 필드에 필요한 스킬명을 지정하면 `delegate.sh`가 해당 SKILL.md 경로를 CLI 에이전트 프롬프트에 주입
 - **실패 자동 감지 및 재위임**: delegate.sh가 agent exit code로 실패 감지 → status=failed 전환. 메인이 로그/결과 확인 후 작업 수정하여 재위임
 - **라운드 기반 반복**: 결과 수집 → 후속 판단 → 추가 작업이 필요하면 다음 라운드 역할 생성
 - **세션 중단 이어받기**: `.done` 파일 존재 여부와 delegate PID 생존 상태로 마지막 단계를 판단하여 대기/수집/재위임 중 적절한 단계부터 재개

@@ -66,6 +66,7 @@ node --version || brew install node
 1. **역할 문서 생성**: 각 역할별 `job-init.sh`로 생성 (.agent/, job-dir, job.md, 역할 테이블 자동 처리)
    - 첫 번째 역할 생성 시 `PURPOSE="..."` 환경변수로 job 목적을 함께 설정한다
    - job.md Round의 goal/target을 채운다
+   - 역할 문서의 `## Scope`에서 skills 필드에 필요한 스킬명을 쉼표로 나열한다 (예: `github-workflow, tech-doc-guide`). 스킬이 불필요하면 비워둔다
    - 역할 문서의 `## 작업`에 파이프라인 단계를 순서대로 정의한다 (예: 1.분석 2.수정 3.검증)
    - 각 단계의 구체적 관점/체크리스트를 명시한다
    - "분석해줘"처럼 막연한 지시 금지
@@ -120,7 +121,8 @@ node --version || brew install node
 
 `job-init.sh`로 생성. 메인은 `## 작업` 섹션만 채우면 된다.
 
-- **Scope**: goal(목적), target(대상), ref(참조 역할 경로, 선택)
+- **Scope**: goal(목적), target(대상), ref(참조 역할 경로, 선택), skills(필요한 스킬명, 쉼표 구분)
+- **skills 필드**: CLI 에이전트는 스킬을 자동 인식하지 못한다. 역할의 작업에 스킬이 필요하면 반드시 skills 필드에 스킬명을 기입한다. delegate.sh가 해당 SKILL.md 경로를 CLI 에이전트 프롬프트에 주입한다.
 - **작업**: 분석→수정→검증 파이프라인. 구체적 체크리스트 필수
 - **검증**: 명령어 + 실제 터미널 출력 3줄 이상 필수. "정상", "에러 없음" 같은 요약만 쓰면 안 됨
 

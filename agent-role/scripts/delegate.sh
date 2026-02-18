@@ -43,11 +43,29 @@ for ROLE_FILE in "$@"; do
   PROMPT_FILE=$(mktemp)
   PROMPT_FILES+=("$PROMPT_FILE")
 
+  # 역할 문서에서 skills 필드 파싱 → SKILL.md 경로 목록 생성
+  SKILL_NAMES=$(grep '^- skills:' "$ROLE_FILE" | sed 's/^- skills: *//')
+  SKILL_INSTRUCTIONS=""
+  if [ -n "$SKILL_NAMES" ]; then
+    SKILL_INSTRUCTIONS="
+아래 스킬이 이 작업에 필요하다. 작업 시작 전에 각 SKILL.md를 Read 도구로 읽고 절차를 따르라:"
+    IFS=',' read -ra SKILL_ARR <<< "$SKILL_NAMES"
+    for S in "${SKILL_ARR[@]}"; do
+      S=$(echo "$S" | xargs)
+      SKILL_PATH="$HOME/.cursor/skills/${S}/SKILL.md"
+      if [ -f "$SKILL_PATH" ]; then
+        SKILL_INSTRUCTIONS="${SKILL_INSTRUCTIONS}
+- ${S}: ${SKILL_PATH}"
+      fi
+    done
+  fi
+
   cat > "$PROMPT_FILE" <<PROMPT_EOF
 다음 순서를 반드시 따라라:
 - '## 현재 상태'와 '## Lock' 섹션은 직접 수정하지 않는다.
 - lock은 delegate가 이미 수행했다. unlock.sh가 completed로 자동 변경한다.
 - 작업 중 임시 파일이 필요하면 /tmp 에서 생성한다. 워크스페이스에 임시 파일을 만들지 않는다.
+${SKILL_INSTRUCTIONS}
 1. ${ROLE_FILE}를 읽는다.
 2. 작업 섹션에 정의된 작업을 수행한다.
 3. '결과 요약' 섹션에 한 줄 요약을 기록한다.
@@ -62,7 +80,7 @@ PROMPT_EOF
   mkdir -p "$LOG_DIR"
   LOG_FILE="$LOG_DIR/$(basename "${ROLE_FILE%.md}").log"
   > "$LOG_FILE"
-  script -q >(node "$SKILLS_DIR/parse-stream.js" >> "$LOG_FILE") agent -p --force --output-format stream-json --stream-partial-output --workspace "$WORKSPACE" "$(cat "$PROMPT_FILE")" &
+  script -q >(node "$SKILLS_DIR/parse-stream.js" "$LOG_FILE") agent -p --force --output-format stream-json --stream-partial-output --workspace "$WORKSPACE" "$(cat "$PROMPT_FILE")" &
   AGENT_PID=$!
   PIDS+=("$AGENT_PID")
 
@@ -86,7 +104,7 @@ fi
 VIEWER="$JOB_DIR/log-viewer.js"
 if [ -f "$VIEWER" ] && command -v node &>/dev/null; then
   VIEWER_PORT=$(node -e "const s=require('net').createServer();s.listen(0,()=>{console.log(s.address().port);s.close()})")
-  node "$VIEWER" "$VIEWER_PORT" &
+  node "$VIEWER" "$JOB_DIR" "$VIEWER_PORT" &
   VIEWER_PID=$!
   echo "Log Viewer: http://localhost:${VIEWER_PORT} (pid=$VIEWER_PID)"
 fi

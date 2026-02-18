@@ -8,8 +8,8 @@ const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 
-const absJobDir = path.dirname(path.resolve(process.argv[1]));
-const port = parseInt(process.argv[2]) || 9999;
+const absJobDir = path.resolve(process.argv[2] || '.');
+const port = parseInt(process.argv[3]) || 9999;
 if (!fs.existsSync(absJobDir)) {
   console.error(`디렉토리 없음: ${absJobDir}`);
   process.exit(1);
@@ -85,12 +85,10 @@ function broadcastState() {
     return { ...r, ...md, log: log.content, logSize: log.size };
   });
 
-  // job.md 읽기
   let jobMd = '';
   const jobMdPath = path.join(absJobDir, 'job.md');
   try { jobMd = fs.readFileSync(jobMdPath, 'utf-8'); } catch {}
 
-  // .done 체크
   const doneFile = path.join(absJobDir, '.done');
   let done = null;
   try { done = fs.readFileSync(doneFile, 'utf-8').trim(); } catch {}
@@ -104,7 +102,29 @@ function broadcastState() {
   }
 }
 
-setInterval(broadcastState, 500);
+// --- fs.watch 기반 변경 감지 ---
+let debounceTimer = null;
+function scheduleBroadcast() {
+  if (debounceTimer) return;
+  debounceTimer = setTimeout(() => { debounceTimer = null; broadcastState(); }, 100);
+}
+
+const watchedFiles = new Set();
+function syncWatchers() {
+  const roles = scanRoles();
+  for (const r of roles) {
+    for (const f of [r.mdPath, r.logPath]) {
+      if (!watchedFiles.has(f) && fs.existsSync(f)) {
+        watchedFiles.add(f);
+        fs.watchFile(f, { interval: 300 }, scheduleBroadcast);
+      }
+    }
+  }
+}
+
+fs.watch(absJobDir, { persistent: false }, () => { syncWatchers(); scheduleBroadcast(); });
+syncWatchers();
+broadcastState();
 
 // --- HTTP 서버 ---
 const server = http.createServer((req, res) => {
@@ -125,6 +145,8 @@ const server = http.createServer((req, res) => {
     res.write('\n');
     clients.push(res);
     req.on('close', () => { clients = clients.filter(c => c !== res); });
+    if (prevState) res.write(`data: ${prevState}\n\n`);
+    else scheduleBroadcast();
     return;
   }
 

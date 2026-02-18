@@ -104,6 +104,7 @@ cat > "$ROLE_FILE" <<EOF
 ## Scope
 - goal: ${GOAL}
 - target: ${TARGET}${REF_LINE}
+- skills: ${SKILLS:-}
 
 ## 현재 상태
 - status: idle

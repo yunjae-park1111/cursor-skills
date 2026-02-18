@@ -46,7 +46,7 @@ job-{n}/
 | 섹션 | 내용 |
 |------|------|
 | Lock | 동시 수정 방지. lock.sh/unlock.sh가 자동 관리 |
-| Scope | goal(최종 목적), target(대상), ref(참고할 역할 문서 경로) |
+| Scope | goal(최종 목적), target(대상), ref(참고할 역할 문서 경로), skills(필요한 스킬명, 쉼표 구분) |
 | 현재 상태 | status 값 (lock.sh → in_progress, unlock.sh → completed) |
 | 작업 | 파이프라인 단계별 체크리스트 (분석→수정→검증) |
 | 결과 요약 | 한 줄 요약 (summary.sh가 추출, 메인이 빠르게 파악용) |
