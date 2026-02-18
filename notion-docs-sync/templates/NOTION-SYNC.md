@@ -112,6 +112,14 @@ pages:
 - 영문 소문자 kebab-case (예: `api-design.md`, `deploy-process.md`)
 - 확장자 `.md`만 허용
 - 인덱스 파일: `{주제}-index.md` (예: `spec/deploy-index.md`, `guide/ops-index.md`)
+- 파일명에 분류 접두사(`spec-`, `guide-`)를 붙이지 않는다. 접두사는 Sync ID에만 사용한다
+
+| 구분 | 파일명 | Sync ID |
+|------|--------|---------|
+| 일반 문서 | `{이름}.md` | `{분류}-{이름}` |
+| 인덱스 문서 | `{주제}-index.md` | `{분류}-{주제}-index` |
+| 예시 (guide) | `ops-index.md` | `guide-ops-index` |
+| 예시 (spec) | `deploy-index.md` | `spec-deploy-index` |
 
 ### 헤딩 규칙
 
