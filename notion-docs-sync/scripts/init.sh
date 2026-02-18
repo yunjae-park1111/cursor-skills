@@ -9,7 +9,8 @@ TARGET_DIR="${1:-.}"
 mkdir -p "$TARGET_DIR"
 
 # templates 복사 (이미 있으면 건너뜀)
-for f in "$SKILL_DIR/templates/"*; do
+for f in "$SKILL_DIR/templates/"* "$SKILL_DIR/templates/".*; do
+  [ ! -f "$f" ] && continue
   BASENAME="$(basename "$f")"
   [ -f "$TARGET_DIR/$BASENAME" ] && echo "Skip (exists): $BASENAME" && continue
   cp "$f" "$TARGET_DIR/$BASENAME"
