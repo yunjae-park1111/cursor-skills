@@ -1,0 +1,13 @@
+{
+  "name": "sync-notion",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "sync": "node sync.mjs"
+  },
+  "dependencies": {
+    "@notionhq/client": "^5.9.0",
+    "@tryfabric/martian": "^1",
+    "js-yaml": "^4"
+  }
+}

@@ -23,6 +23,9 @@ git clone git@github.com:yunjae-park1111/cursor-skills.git ~/.cursor/skills
 ## 깃허브
 - PR, 이슈, 커밋 키워드가 포함되면 /github-workflow 스킬을 참조한다.
 
+## Notion 문서 동기화
+- Notion, 문서 동기화 키워드가 포함되면 /notion-docs-sync 스킬을 참조한다.
+
 ## 스킬 관리
 - ~/.cursor/skills/가 비어있거나 없으면 아래 레포에서 설치한다.
   - git clone git@github.com:yunjae-park1111/cursor-skills.git ~/.cursor/skills
@@ -30,10 +33,11 @@ git clone git@github.com:yunjae-park1111/cursor-skills.git ~/.cursor/skills
 
 ## 스킬 목록
 
-| 스킬 | 설명 | 트리거 키워드 |
-|------|------|--------------|
-| [agent-role](#agent-role) | 멀티 에이전트 역할 기반 병렬 작업 관리 | 병렬, 역할, CLI, 백그라운드 |
-| [github-workflow](#github-workflow) | GitHub PR, 이슈, 커밋 생성 및 관리 자동화 | PR, 이슈, 커밋 |
+| 스킬 | 설명 | 트리거 |
+|------|------|--------|
+| [agent-role](#agent-role) | 멀티 에이전트 병렬 작업 관리 | 병렬, 역할 |
+| [github-workflow](#github-workflow) | GitHub PR, 이슈, 커밋 자동화 | PR, 이슈, 커밋 |
+| [notion-docs-sync](#notion-docs-sync) | Markdown → Notion 동기화 | Notion, 문서 동기화 |
 ```
 
 ---
@@ -136,6 +140,64 @@ GitHub PR, 이슈, 커밋 작업을 자동화하는 스킬입니다.
 
 ---
 
+## notion-docs-sync
+
+Markdown 문서를 Notion에 동기화하는 스킬입니다. 프로젝트의 `docs/` 디렉토리에 있는 `.md` 파일을 Notion 페이지로 변환·동기화합니다.
+
+### 핵심 개념
+
+- **YAML 기반 설정**: `.notion-sync.yaml`에서 동기화 대상 문서와 Notion 매핑을 관리
+- **두 가지 동기화 방식**: Notion DB 소속 문서(`databases`)와 독립 페이지(`pages`) 지원
+- **문서 구조 규칙**: 헤딩, 파일명, 디렉토리 구조, 본문 작성 규칙을 통일
+
+### 주요 기능
+
+- **자동 초기화**: `init.sh`로 프로젝트에 설정 파일과 디렉토리 구조 생성
+- **전체/선택 동기화**: 전체 문서 또는 특정 파일만 지정하여 동기화
+- **DB 속성 자동 매핑**: `.notion-sync.yaml`에 추가 속성을 넣으면 DB 스키마를 자동 조회하여 타입에 맞게 동기화 (rich_text, select, multi_select, number, checkbox 등)
+- **파일 첨부**: `{{attach: 경로}}` 플레이스홀더로 Notion 파일 블록 삽입
+- **계층 구조**: `Parent` 필드로 상위/하위 문서 관계 정의, `Sync ID`로 문서 고유 식별
+
+### 동기화 실행
+
+```bash
+export NOTION_TOKEN="<Notion Integration Token>"
+
+# 전체 동기화
+node SKILL_DIR/scripts/sync.mjs
+
+# yaml 경로 지정
+node SKILL_DIR/scripts/sync.mjs path/to/.notion-sync.yaml
+
+# 특정 파일만
+node SKILL_DIR/scripts/sync.mjs .notion-sync.yaml spec/api-design.md
+```
+
+### 스크립트
+
+| 스크립트 | 용도 |
+|---------|------|
+| `init.sh <target-dir>` | 프로젝트 초기화. 설정 파일 복사, `spec/`·`guide/` 디렉토리 생성, `npm install` 실행 |
+| `sync.mjs [yaml-path] [files...]` | Markdown → Notion 동기화. DB 방식과 독립 페이지 방식 모두 지원 |
+
+### .notion-sync.yaml 구조
+
+```yaml
+databases:
+  - database_id: "<Notion DB ID>"
+    pages:
+      - file: spec/api-design.md
+        title: "API 설계 규칙"
+        Sync ID: spec-api-design
+        Parent: ""
+
+pages:
+  - file: guide/quickstart.md
+    page_id: "<Notion Page ID>"
+```
+
+---
+
 ## 디렉토리 구조
 
 ```
@@ -159,12 +221,23 @@ GitHub PR, 이슈, 커밋 작업을 자동화하는 스킬입니다.
 │   └── scripts/
 │       ├── create-pr.sh
 │       └── create-issue.sh
+├── notion-docs-sync/
+│   ├── SKILL.md
+│   ├── scripts/
+│   │   ├── init.sh
+│   │   ├── sync.mjs
+│   │   ├── package.json
+│   │   └── package-lock.json
+│   └── templates/
+│       ├── .notion-sync.yaml
+│       └── NOTION-SYNC-GUIDE.md
 ```
 
 ## 요구사항
 
 - [Cursor IDE](https://cursor.com) (Agent 기능 활성화)
 - Cursor CLI의 `agent` 명령 (agent-role 스킬, 병렬 위임 시 필요)
-- [Node.js](https://nodejs.org/) (agent-role 스킬, 로그 뷰어/파서 실행 시 필요)
+- [Node.js](https://nodejs.org/) 18+ (agent-role 스킬 로그 뷰어/파서, notion-docs-sync 스킬)
 - [gh CLI](https://cli.github.com/) 2.0+ (github-workflow 스킬)
 - gh extension: [yahsan2/gh-sub-issue](https://github.com/yahsan2/gh-sub-issue) (Epic 서브이슈 연결 시)
+- `NOTION_TOKEN` 환경변수 (notion-docs-sync 스킬, Notion Integration Token)

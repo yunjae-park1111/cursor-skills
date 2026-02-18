@@ -1,0 +1,49 @@
+# Markdown → Notion 동기화 매핑
+#
+# file 경로는 이 yaml 파일 기준 상대경로
+#
+# databases: DB 소속 문서 (Sync ID로 검색, 없으면 새로 생성)
+#   - database_id: Notion DB ID
+#     pages:
+#       - file, title, Sync ID, Parent
+#
+# pages: 독립 페이지 (page_id로 직접 콘텐츠 동기화)
+#   - file, page_id
+#
+# Sync ID 접두사: spec 문서는 spec-, guide 문서는 guide-
+# Parent: 상위 문서의 Sync ID (빈 값이면 최상위)
+
+databases:
+  - database_id: "<Notion DB ID>"
+    pages:
+      # ── Spec ──
+      - file: spec/overview-index.md
+        title: "서비스 아키텍처"
+        Sync ID: spec-overview-index
+        Parent: ""
+      - file: spec/api-design.md
+        title: "API 설계 규칙"
+        Sync ID: spec-api-design
+        Parent: spec-overview-index
+      - file: spec/deploy-strategy.md
+        title: "배포 전략"
+        Sync ID: spec-deploy-strategy
+        Parent: spec-overview-index
+
+      # ── Guide ──
+      - file: guide/setup-index.md
+        title: "서비스 설정 가이드"
+        Sync ID: guide-setup-index
+        Parent: ""
+      - file: guide/local-dev.md
+        title: "로컬 개발 환경 가이드"
+        Sync ID: guide-local-dev
+        Parent: guide-setup-index
+      - file: guide/troubleshooting.md
+        title: "트러블슈팅 가이드"
+        Sync ID: guide-troubleshooting
+        Parent: guide-setup-index
+
+pages:
+  - file: guide/quickstart.md
+    page_id: "<Notion Page ID>"
