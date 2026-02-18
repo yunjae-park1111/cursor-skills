@@ -18,10 +18,6 @@ gh extension install yahsan2/gh-sub-issue
 
 GitHub PR, 이슈, 커밋 작업 시 이 스킬을 따른다.
 
-## 스크립트 경로
-
-모든 스크립트는 `~/.cursor/skills/github-workflow/scripts/`에 위치한다.
-
 ## 브랜치 생성
 
 | 종류 | 형식 | 예시 |

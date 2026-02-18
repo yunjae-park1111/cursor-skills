@@ -7,16 +7,16 @@ description: Markdown 문서를 Notion에 동기화. .notion-sync.yaml 설정, N
 
 ## 사전 요구사항
 
-프로젝트에 `.notion-sync.yaml`이 없으면 사용자에게 배치할 폴더를 확인한 뒤(기본: 프로젝트 루트) `init.sh`를 실행한다.
+프로젝트에 `.notion-sync.yaml`이 없으면 사용자에게 배치할 폴더를 확인한 뒤(기본: 프로젝트 루트) **반드시** `init.sh`를 실행한다.
 
 ```bash
 SKILL_DIR/scripts/init.sh <target-dir>
 ```
 
-`init.sh`가 수행하는 작업:
-- `templates/` 파일을 대상 폴더에 복사 (이미 있으면 건너뜀)
-- `spec/`, `guide/` 디렉토리 생성
-- `npm install` 실행 (최초 1회, `node_modules` 없을 때만)
+`init.sh`를 실행해야 하는 이유:
+- `.notion-sync.yaml` 템플릿, `NOTION-SYNC.md`(Notion 제약 규칙)를 프로젝트에 복사한다. 이 파일들이 없으면 에이전트가 동기화 설정과 작성 규칙을 참조할 수 없다.
+- `spec/`, `guide/` 디렉토리를 생성한다. 문서를 넣을 위치가 없으면 작업을 시작할 수 없다.
+- `npm install`로 동기화 스크립트 의존성을 설치한다 (최초 1회). 설치하지 않으면 `sync.mjs` 실행이 실패한다.
 
 요구사항: Node.js 18+
 
@@ -84,4 +84,4 @@ Notion DB에 최소한 다음 속성이 필요하다:
 
 ## 문서 작성 규칙
 
-`init.sh` 실행 시 프로젝트에 복사되는 `NOTION-SYNC-GUIDE.md`에 디렉토리 구조, 문서 구조, 헤딩·파일명·본문 작성 규칙, 파일 첨부 방법이 정리되어 있다. 문서 작성 시 해당 가이드를 참조한다.
+`init.sh` 실행 시 프로젝트에 복사되는 `NOTION-SYNC.md`에 디렉토리 구조, 문서 구조, 헤딩·파일명·본문 작성 규칙, 파일 첨부 방법이 정리되어 있다. 문서 작성 시 해당 가이드를 참조한다.
