@@ -48,7 +48,7 @@ node --version || brew install node
 | `parse-stream.js` | agent CLI의 stream-json 출력을 사람이 읽을 수 있는 형태로 실시간 변환. delegate.sh가 자동 사용 |
 | `log-viewer.js` | 브라우저 로그 뷰어. delegate.sh가 자동 실행, 하트비트로 자동 종료. 수동: `node .agent/job-{n}/log-viewer.js [port]` |
 
-경로 prefix: `~/.cursor/skills/agent-role/scripts/`
+`SKILL_DIR`은 이 스킬의 디렉토리 경로이다. 경로 prefix: `SKILL_DIR/scripts/`
 
 ## 메인 에이전트 동작
 
@@ -75,7 +75,7 @@ node --version || brew install node
    a. delegate.sh가 job.md의 pid/started_at을 자동 기록하므로 별도 기록 불필요
    b. Shell로 아래 명령을 실행한다 (block_until_ms를 충분히 높게 설정. 예: 600000):
       ```
-      SCRIPTS=~/.cursor/skills/agent-role/scripts
+      SCRIPTS=SKILL_DIR/scripts
       while [ ! -f .agent/job-{n}/.done ]; do sleep 10; $SCRIPTS/status.sh .agent/job-{n}; done
       cat .agent/job-{n}/.done && rm .agent/job-{n}/.done
       ```
