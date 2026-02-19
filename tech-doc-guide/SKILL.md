@@ -7,7 +7,18 @@ description: 기술 문서 형식 가이드. 문서 작성, 문서 형식, READM
 
 ## 사전 요구사항
 
-없음.
+문서 자동 생성 스크립트(`### 9. 코드 문서화`) 사용 시:
+
+| 스크립트 | 도구 | 코드 세팅 |
+|----------|------|-----------|
+| `godoc-to-md.sh` | `gomarkdoc` | 패키지 주석이 godoc 형식으로 작성 (`#### Go 패키지 주석 양식` 참조) |
+| `swagger-to-md.sh` | `swag`, `npx` | entrypoint에 API 메타 어노테이션, 핸들러에 라우트 어노테이션 |
+| `schema-to-md.sh` | 없음 | `migrations/*.up.sql` 파일 존재 |
+
+도구 설치:
+- `go install github.com/princjef/gomarkdoc/cmd/gomarkdoc@latest`
+- `go install github.com/swaggo/swag/cmd/swag@latest`
+- Node.js (`npx`)
 
 ## 절차
 
@@ -182,6 +193,102 @@ compatibility:
 
 - **패키지/함수**: godoc (코드 주석 기반 자동 생성). Go 공식 표준.
 - **REST API**: swaggo/swag (코드 주석 → OpenAPI/Swagger 스펙 자동 생성). 별도 yaml을 수동 작성하지 않는다.
+
+#### Go 패키지 주석 양식
+
+패키지 주석은 Core File (`{패키지명}.go`)의 `package` 선언 바로 위에 작성한다.
+첫 문단은 `Package {name}` 으로 시작하고, godoc `# Heading` 문법으로 섹션을 구분한다.
+
+| heading | 설명 | 필수 |
+|---------|------|------|
+| (첫 문단) | 패키지 개요 (`Package {name} ...`) | ✅ |
+| `# File Structure` | 파일 구조와 각 파일 역할 | ✅ |
+| `# Components` | 핵심 구조체, 인터페이스, 관계 | ✅ |
+| `# Configuration` | 설정 상수, 환경변수 | 해당 시 |
+| `# Usage` | 사용 예시 코드 | ✅ |
+
+패키지 특성에 따라 heading을 추가한다 (예: `# Message Flow`, `# Connection Flow`, `# Shutdown`).
+
+#### 문서 자동 생성 스크립트
+
+스킬의 `SKILL_DIR/scripts/`에 3개의 문서 생성 스크립트가 포함되어 있다.
+모든 스크립트의 경로 인자는 스크립트 파일 기준 상대경로 또는 절대경로.
+
+| 스크립트 | 소스 | 출력 | 의존성 |
+|---------|------|------|--------|
+| `godoc-to-md.sh` | Go 패키지 godoc 주석 | 패키지별 `.md` | `gomarkdoc` |
+| `swagger-to-md.sh` | Swagger 어노테이션 | `api-spec.md` | `swag`, `npx` (widdershins) |
+| `schema-to-md.sh` | `migrations/*.up.sql` | `db-schema.md` | 없음 |
+
+**1. godoc-to-md.sh** — Go 패키지 주석 → Markdown
+
+gomarkdoc으로 godoc 주석에서 마크다운을 추출한다.
+패키지 설명만 추출할 때는 `## Index` 이전까지만 취한다.
+heading 레벨을 조정하고(`###` → `##`), 프로세스/구조 Spec 형식에 맞게 한글 매핑한다:
+
+| godoc heading | 문서 heading |
+|---------------|-------------|
+| `# File Structure` | `## 파일 구조` |
+| `# Components` | `## 구성 요소` |
+| `# Configuration` | `## 설정` |
+| `# Usage` | `## 사용 예시` |
+
+```bash
+SKILL_DIR/scripts/godoc-to-md.sh <프로젝트_루트> <문서_디렉토리> [-f 필터]
+
+# 예시
+SKILL_DIR/scripts/godoc-to-md.sh /path/to/project /path/to/project/docs
+SKILL_DIR/scripts/godoc-to-md.sh /path/to/project /path/to/project/docs -f agent/client
+```
+
+**2. swagger-to-md.sh** — Swagger 어노테이션 → OpenAPI 스펙 + Markdown
+
+소스 코드에 swaggo 어노테이션이 작성되어 있어야 한다:
+
+- **entrypoint** (main.go): API 메타 정보 (`@title`, `@version`, `@description`, `@BasePath` 등)
+- **핸들러 함수**: 라우트 어노테이션 (`@Summary`, `@Tags`, `@Param`, `@Success`, `@Failure`, `@Router`)
+
+`md` 커맨드는 widdershins 출력을 후처리하여 HTML 태그 제거, `## 개요` 삽입 등 tech-doc-guide 형식으로 변환한다.
+
+서브커맨드로 설치/생성/포맷/검증/변환을 통합 관리한다.
+
+| 커맨드 | 설명 |
+|--------|------|
+| `install` | swag CLI 설치 |
+| `gen` | OpenAPI 스펙 생성 (docs.go, swagger.json, swagger.yaml) |
+| `fmt` | 소스 코드의 Swagger 어노테이션 포맷팅 |
+| `validate` | 어노테이션 유효성 검증 |
+| `md` | gen + OpenAPI → Markdown 변환 |
+| `all` | md와 동일 |
+
+```bash
+SKILL_DIR/scripts/swagger-to-md.sh <커맨드> <entrypoint> <swagger_출력> [md_출력]
+
+# 예시
+SKILL_DIR/scripts/swagger-to-md.sh install
+SKILL_DIR/scripts/swagger-to-md.sh gen cmd/control-plane/main.go ./docs/swagger
+SKILL_DIR/scripts/swagger-to-md.sh md cmd/control-plane/main.go ./docs/swagger ./docs/api
+```
+
+**3. schema-to-md.sh** — SQL 마이그레이션 → DB 스키마 Markdown
+
+`migrations/*.up.sql` 파일이 존재해야 한다. 표준 SQL 문법(`CREATE TABLE`, `CREATE INDEX`, `REFERENCES`)을 파싱하여 테이블/컬럼/인덱스/ER 다이어그램을 생성한다. DB 연결 불필요.
+
+```bash
+SKILL_DIR/scripts/schema-to-md.sh <마이그레이션_디렉토리> <문서_디렉토리>
+
+# 예시
+SKILL_DIR/scripts/schema-to-md.sh ./migrations ./docs/api
+```
+
+**Makefile 통합 패턴:**
+
+프로젝트에 스크립트를 복사한 뒤 Makefile로 통합하면 `make docs` 한 커맨드로 전체 문서를 생성할 수 있다.
+
+```makefile
+docs: swagger-md schema-md
+	@./godoc-to-md.sh . ./docs
+```
 
 ## 공통 원칙
 

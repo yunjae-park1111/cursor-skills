@@ -21,6 +21,8 @@ Cursor AI 에이전트의 작업 능력을 확장하는 커스텀 스킬 모음�
 - [gh CLI](https://cli.github.com/) 2.0+ (github-workflow 스킬)
 - gh extension: [yahsan2/gh-sub-issue](https://github.com/yahsan2/gh-sub-issue) (Epic 서브이슈 연결 시)
 - `NOTION_TOKEN` 환경변수 (notion-docs-sync 스킬, Notion Integration Token)
+- [gomarkdoc](https://github.com/princjef/gomarkdoc) (tech-doc-guide 스킬, godoc-to-md.sh)
+- [swag](https://github.com/swaggo/swag) + Node.js `npx` (tech-doc-guide 스킬, swagger-to-md.sh)
 
 ### Installation
 
@@ -227,15 +229,18 @@ pages:
 
 ### tech-doc-guide
 
-기술 문서 작성 시 형식을 정의하는 스킬입니다.
+기술 문서 작성 시 형식을 정의하고, 코드 문서 자동 생성 스크립트를 제공하는 스킬입니다.
 
 #### 문서 유형별 형식
 
 | 유형 | 형식 | 근거 |
 |------|------|------|
 | README | Overview → Getting Started → Usage → Configuration → Contributing → License | GitHub 생태계 사실상 표준 |
+| 인덱스 | 개요 → 하위 문서 테이블 | 디렉토리 내 문서 탐색 엔트리포인트 |
 | 스킬 문서 (SKILL.md) | frontmatter + 사전 요구사항 → 절차 → 참조 | Cursor Skills 공식 형식 |
 | 프로젝트 Spec | 개요 → 목표 → 아키텍처 → 주요 기능 → 외부 연동 → 제약 사항 | ISO/IEC/IEEE 42010, arc42 참고 (공식 표준 없음) |
+| 정책/규칙 Spec | 개요 → 카테고리별 규칙 → 예외 | ISO 27001, IETF RFC 2119 참고 (공식 표준 없음) |
+| 프로세스/구조 Spec | 개요 → 구성/흐름 + 선택 섹션 | BPMN 2.0, RACI 매트릭스 참고 (공식 표준 없음) |
 | 가이드 (How-to) | 개요 → 사전 조건 → 절차 → 검증 → 트러블슈팅 | DITA task 구조(OASIS 표준) 참고 |
 
 #### 코드 문서화
@@ -244,6 +249,15 @@ pages:
 |------|------|------|
 | 패키지/함수 | godoc | Go 공식 표준. 코드 주석 기반 자동 생성 |
 | REST API | swaggo/swag | 코드 주석 → OpenAPI/Swagger 자동 생성 |
+| DB 스키마 | SQL 파싱 | `migrations/*.up.sql`에서 테이블/인덱스/ER 다이어그램 생성 |
+
+#### 문서 자동 생성 스크립트
+
+| 스크립트 | 소스 | 출력 | 의존성 |
+|---------|------|------|--------|
+| `godoc-to-md.sh` | Go 패키지 godoc 주석 | 패키지별 `.md` | `gomarkdoc` |
+| `swagger-to-md.sh` | Swagger 어노테이션 | `api-spec.md` | `swag`, `npx` (widdershins) |
+| `schema-to-md.sh` | `migrations/*.up.sql` | `db-schema.md` | 없음 |
 
 ## 디렉토리 구조
 
@@ -279,5 +293,9 @@ pages:
 │       ├── .notion-sync.yaml
 │       └── NOTION-SYNC.md
 ├── tech-doc-guide/
-│   └── SKILL.md
+│   ├── SKILL.md
+│   └── scripts/
+│       ├── godoc-to-md.sh
+│       ├── swagger-to-md.sh
+│       └── schema-to-md.sh
 ```
