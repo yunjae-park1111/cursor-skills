@@ -48,6 +48,14 @@ resolve_path() {
   fi
 }
 
+get_repo_name() {
+  local url
+  url="$(git -C "$1" remote get-url origin 2>/dev/null)" || return 1
+  echo "$url" | sed -E 's#.*(github\.com[:/])##; s/\.git$//'
+}
+
+REPO_NAME="$(get_repo_name "$SCRIPT_DIR" || echo "")"
+
 usage() {
   echo "사용법: swagger-to-md.sh <커맨드> <entrypoint> <swagger_출력> [md_출력]"
   echo ""
@@ -91,13 +99,20 @@ remove_noise() {
 }
 
 rewrite_header() {
+  local repo_line=""
+  [[ -n "$REPO_NAME" ]] && repo_line="- **레포지토리**: \`${REPO_NAME}\`"
   awk -v auto_gen='> `swagger.yaml`에서 자동 생성됨 (`make swagger-md`)' \
-      -v overview_heading='## 개요' '
+      -v overview_heading='## 개요' \
+      -v repo="$repo_line" '
     BEGIN { in_header = 1; title = ""; desc = "" }
     in_header && /^# / && title == "" { title = $0; next }
     in_header && /^# / && title != "" {
       print title; print ""; print auto_gen; print ""
-      if (desc != "") { print overview_heading; print ""; print desc; print "" }
+      if (desc != "") {
+        print overview_heading; print ""
+        if (repo != "") { print repo; print "" }
+        print desc; print ""
+      }
       in_header = 0; print $0; next
     }
     in_header && !/^$/ && !/^#/ && !/^\*/ && !/^Base URLs/ && !/^Email:/ && !/^License:/ && !/^>/ {

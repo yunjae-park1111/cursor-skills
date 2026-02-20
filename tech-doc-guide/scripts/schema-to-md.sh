@@ -33,9 +33,16 @@ resolve_path() {
   fi
 }
 
+get_repo_name() {
+  local url
+  url="$(git -C "$1" remote get-url origin 2>/dev/null)" || return 1
+  echo "$url" | sed -E 's#.*(github\.com[:/])##; s/\.git$//'
+}
+
 MIGRATIONS_DIR="$(resolve_path "$1")"
 OUTPUT_DIR="$(resolve_path "$2")"
 OUTPUT_FILE="${OUTPUT_DIR}/db-schema.md"
+REPO_NAME="$(get_repo_name "$SCRIPT_DIR" || echo "")"
 
 if [ ! -d "$MIGRATIONS_DIR" ]; then
   echo "error: 마이그레이션 디렉토리를 찾을 수 없습니다: ${MIGRATIONS_DIR}"
@@ -66,6 +73,7 @@ fk_count="$(echo "$ALL_SQL" | grep -ci 'REFERENCES' || true)"
   echo ""
   echo "## 개요"
   echo ""
+  [[ -n "$REPO_NAME" ]] && echo "- **레포지토리**: \`${REPO_NAME}\`" && echo ""
   echo "테이블 ${table_count}개, 인덱스 ${index_count}개, FK 관계 ${fk_count}개로 구성된 스키마."
   echo ""
 

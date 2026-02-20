@@ -33,9 +33,16 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # 상대경로는 스크립트 파일 기준, 절대경로는 그대로
 resolve() { [[ "$1" = /* ]] && echo "$1" || echo "$SCRIPT_DIR/$1"; }
 
+get_repo_name() {
+  local url
+  url="$(git -C "$1" remote get-url origin 2>/dev/null)" || return 1
+  echo "$url" | sed -E 's#.*(github\.com[:/])##; s/\.git$//'
+}
+
 PROJECT_ROOT="$(cd "$(resolve "$1")" && pwd)"; shift
 OUT_DIR="$(mkdir -p "$(resolve "$1")" && cd "$(resolve "$1")" && pwd)"; shift
 FILTER=""
+REPO_NAME="$(get_repo_name "$PROJECT_ROOT" || echo "")"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -139,7 +146,9 @@ remove_import() {
 
 # 첫 문단 앞에 "## 개요" 삽입
 insert_overview() {
-  awk '
+  local repo_line=""
+  [[ -n "$REPO_NAME" ]] && repo_line="- **레포지토리**: \`${REPO_NAME}\`"
+  awk -v repo="$repo_line" '
     BEGIN { found_title = 0; inserted = 0 }
     /^# / { found_title = 1; print; next }
     /^>/ { print; next }
@@ -147,6 +156,7 @@ insert_overview() {
       print ""
       print "## 개요"
       print ""
+      if (repo != "") { print repo; print "" }
       inserted = 1
     }
     { print }
